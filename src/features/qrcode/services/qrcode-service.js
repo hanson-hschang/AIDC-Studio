@@ -1,5 +1,5 @@
 /**
- * quick-response-code-service.js
+ * qrcode-service.js
  *
  * All business logic for Quick Response Code generation, live title rendering,
  * and file export.  Depends on the shared application state and utility modules.

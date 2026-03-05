@@ -1,0 +1,96 @@
+/*
+ * preview.css
+ *
+ * Styles for the sticky preview column, shared preview card chrome (border,
+ * gradient top bar, title area), QR Code–specific preview elements, and
+ * Barcode-specific preview elements.
+ */
+
+/* ── PREVIEW COLUMN ── */
+.preview-col {
+  display: flex; flex-direction: column; gap: 18px;
+  position: sticky; top: 24px; align-self: start;
+}
+
+/* ── QR CODE PREVIEW CARD ── */
+.preview-card {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  animation: fadeUp 0.4s ease 0.1s both;
+  transition: background 0.3s;
+  background: #000000;
+}
+.preview-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+  opacity: 0.5; z-index: 1; pointer-events: none;
+}
+
+.preview-title-area {
+  padding: 24px 20px 0;
+  width: 100%;
+}
+#qr-title-preview {
+  width: 100%; white-space: pre-wrap; word-break: break-word;
+  transition: all 0.2s; line-height: 1.4;
+}
+
+.preview-qr-area {
+  padding: 16px 20px 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#qr-canvas-wrap {
+  width: 240px; height: 240px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+#qr-canvas-wrap canvas, #qr-canvas-wrap img {
+  max-width: 100%; max-height: 100%; display: block;
+}
+.qr-placeholder {
+  width: 240px; height: 240px;
+  border: 2px dashed var(--border); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px; color: var(--muted);
+  text-align: center;
+}
+.qr-placeholder svg { opacity: 0.3; }
+.qr-placeholder p { font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-align: center; }
+.qr-wrapper { border-radius: 8px; transition: background 0.3s; display: inline-block; }
+.qr-wrapper img, .qr-wrapper canvas { display: block; }
+
+.qr-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ── BARCODE PREVIEW CARD ── */
+.bc-preview-card {
+  border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+  position: relative; animation: fadeUp 0.4s ease 0.1s both;
+  transition: background 0.3s; background: #000000;
+}
+.bc-preview-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+  opacity: 0.5; z-index: 1; pointer-events: none;
+}
+.bc-title-area { padding: 24px 20px 0; width: 100%; }
+#bc-title-preview { width: 100%; white-space: pre-wrap; word-break: break-word; transition: all 0.2s; line-height: 1.4; }
+.bc-code-area {
+  padding: 16px 20px 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+#bc-canvas-wrap {
+  max-width: 100%; display: flex; align-items: center; justify-content: center;
+}
+#bc-svg { max-width: 100%; display: block; border-radius: 8px; overflow: hidden; }
+.bc-placeholder {
+  width: 100%; min-height: 120px;
+  border: 2px dashed var(--border); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px; color: var(--muted); padding: 20px;
+  text-align: center;
+}
+.bc-placeholder svg { opacity: 0.3; }
+.bc-placeholder p { font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-align: center; }

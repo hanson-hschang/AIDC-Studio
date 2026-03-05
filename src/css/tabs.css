@@ -1,0 +1,31 @@
+/*
+ * tabs.css
+ *
+ * Styles for the tab navigation bar, individual tab buttons, and tab panels.
+ */
+
+.tab-bar {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-top: 20px;
+  margin-bottom: 32px;
+}
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  padding: 12px 24px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active[data-tab="qr"] { color: var(--accent); border-bottom-color: var(--accent2); }
+.tab-btn.active[data-tab="barcode"] { color: var(--accent); border-bottom-color: var(--accent2); }
+.tab-btn svg { opacity: 0.7; }
+.tab-btn.active svg { opacity: 1; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }

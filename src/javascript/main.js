@@ -27,7 +27,7 @@ import {
   updateQuickResponseCodeTitle,
   scheduleQuickResponseCodeUpdate,
   downloadQuickResponseCode
-} from '../features/quick-response-code/services/quick-response-code-service.js';
+} from '../features/qrcode/services/qrcode-service.js';
 
 import {
   updateBarcodeTitle,
