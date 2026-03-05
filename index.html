@@ -479,7 +479,7 @@ footer {
 
   <header>
     <div class="logo">AIDC Studio <span class="logo-sub">v3</span></div>
-    <div class="tagline">GENERATE · STYLE · EXPORT</div>
+    <div class="tagline">CREATE · STYLE · EXPORT</div>
   </header>
 
   <!-- TAB BAR -->
@@ -1061,7 +1061,7 @@ footer {
       <span>Barcodes</span><span class="footer-sep">·</span>
       <span>Free to Use</span>
     </div>
-    <div class="footer-note">Generated codes are for personal and commercial use. Verify critical barcodes before production printing.</div>
+    <div class="footer-note">Generated codes are for personal use. Verify critical codes before deployment.</div>
   </div>
 </footer>
 
@@ -1116,7 +1116,7 @@ function ddToggle(id) {
   dd.classList.add('open');
 
   // Move to body so it escapes all stacking contexts
-  const listW = Math.max(btnRect.width, 200);
+  const listW = btnRect.width;
   list.style.cssText = `display:block;visibility:hidden;position:absolute;top:-9999px;left:-9999px;width:${listW}px;`;
   document.body.appendChild(list);
 
@@ -1138,7 +1138,7 @@ function ddToggle(id) {
     ? sy + btnRect.top - listH - 4
     : sy + btnRect.bottom + 4;
 
-  list.style.cssText = `display:block;position:absolute;top:${topPx}px;left:${sx + btnRect.left}px;width:${listW}px;max-height:${listH}px;z-index:99999;`;
+  list.style.cssText = `display:block;position:absolute;top:${topPx}px;left:${sx + btnRect.left}px;width:${listW}px;max-height:${listH}px;z-index:99999;overflow-y:auto;`;
 
   // Suppress the document click handler for this same click event
   _suppressClose = true;
