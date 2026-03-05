@@ -21,21 +21,38 @@ cd AIDC-Studio
 
 ```
 
-### 2. Fire Up the Server
+### 2. Start a Local Server
 
-AIDC-Studio runs on a simple Python backend. 
-Start the local development server with:
+Because the application uses ES Modules it **must** be served over HTTP — opening `index.html` directly as a `file://` URL will cause import errors in most browsers.
+
+**Option A — Built-in Python development server (recommended)**
 
 ```bash
 python server.py
-
 ```
+
+**Option B — Python standard library (no extra files)**
+
+```bash
+python3 -m http.server 8080
+```
+
+**Option C — Node.js `serve` package**
+
+```bash
+npx serve .
+```
+
+**Option D — Any static web server**
+
+Point your web server at the repository root. The entry point is `index.html`.
 
 ### 3. View the Website
 
-Open your favorite browser and navigate to:
+Open your browser and navigate to the URL printed by your chosen server option — for example:
 
-> **[http://localhost:8000](https://www.google.com/search?q=http://localhost:8000)**
+> **[http://localhost:8000](http://localhost:8000)** (Options A and D)  
+> **[http://localhost:8080](http://localhost:8080)** (Option B)
 
 ---
 

@@ -31,25 +31,7 @@ A fast, free, and open-source studio for creating, styling, and exporting design
 
 ## Getting Started
 
-Because the application uses ES Modules it **must** be served over HTTP — opening `index.html` directly as a `file://` URL will cause import errors in most browsers.
-
-### Option A — Python (no dependencies)
-
-```bash
-python3 -m http.server 8080
-```
-
-Then open `http://localhost:8080` in your browser.
-
-### Option B — Node.js `serve` package
-
-```bash
-npx serve .
-```
-
-### Option C — Any static web server
-
-Point your web server at the repository root.  The entry point is `index.html`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, including how to start a local server.
 
 ---
 
