@@ -110,7 +110,7 @@ header {
 }
 @media (max-width: 860px) {
   .workspace { grid-template-columns: 1fr; }
-  .preview-col { order: -1; position: static !important; }
+  .preview-col { order: -1; position: static !important; width: 360px; max-width: 100%; margin: 0 auto; }
 }
 
 .controls-col { display: flex; flex-direction: column; gap: 20px; }
@@ -245,11 +245,12 @@ textarea::placeholder { color: var(--muted); }
 }
 .custom-dd-btn:hover, .custom-dd.open .custom-dd-btn { border-color: var(--accent2); }
 .custom-dd-list {
-  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  display: none; position: absolute;
   background: var(--surface2); border: 1px solid var(--accent2);
-  border-radius: 10px; z-index: 999;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  max-height: 260px; overflow-y: auto;
+  border-radius: 10px; z-index: 99999;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  max-height: 280px; overflow-y: auto;
+  /* position/size set by JS after teleporting to body */
 }
 .custom-dd.open .custom-dd-list { display: block; }
 .custom-dd-opt {
@@ -257,8 +258,8 @@ textarea::placeholder { color: var(--muted); }
   cursor: pointer; transition: background 0.1s; white-space: nowrap;
   font-family: 'DM Sans', sans-serif;
 }
-.custom-dd-opt:hover { background: rgba(232,213,163,0.08); }
-.custom-dd-opt.selected { color: var(--accent); background: rgba(232,213,163,0.06); }
+.custom-dd-opt:hover { background: rgba(232,213,163,0.10); }
+.custom-dd-opt.selected { color: var(--accent); background: rgba(232,213,163,0.08); }
 .ec-btns { display: flex; gap: 6px; }
 .ec-btn {
   flex: 1; background: var(--surface2); border: 1px solid var(--border);
@@ -352,7 +353,7 @@ textarea::placeholder { color: var(--muted); }
 #bc-canvas-wrap {
   max-width: 100%; display: flex; align-items: center; justify-content: center;
 }
-#bc-svg { max-width: 100%; display: block; }
+#bc-svg { max-width: 100%; display: block; border-radius: 8px; overflow: hidden; }
 .bc-placeholder {
   width: 100%; min-height: 120px;
   border: 2px dashed var(--border); border-radius: 12px;
@@ -430,6 +431,38 @@ textarea::placeholder { color: var(--muted); }
 }
 .err-msg { font-size: 11px; color: #e05c5c; font-family: 'DM Mono', monospace; margin-top: 6px; display: none; }
 .err-msg.show { display: block; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding: 40px 16px 48px;
+}
+.footer-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700; color: var(--accent);
+  letter-spacing: -0.3px; margin-bottom: 4px;
+}
+.footer-copy {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--muted); letter-spacing: 0.5px;
+}
+.footer-links {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
+}
+.footer-sep { color: var(--border); }
+.footer-note {
+  font-size: 11px; color: var(--border); font-family: 'DM Sans', sans-serif;
+  max-width: 480px; line-height: 1.6; margin-top: 6px;
+}
 </style>
 </head>
 <body>
@@ -1014,6 +1047,19 @@ textarea::placeholder { color: var(--muted); }
 
 </div><!-- /app -->
 
+<footer>
+  <div class="footer-inner">
+    <!-- <div class="footer-logo">AIDC Studio</div> -->
+    <div class="footer-copy">© AIDC Studio. All Rights Reserved.</div>
+    <div class="footer-links">
+      <span>QR Codes</span><span class="footer-sep">·</span>
+      <span>Barcodes</span><span class="footer-sep">·</span>
+      <span>Free to Use</span>
+    </div>
+    <div class="footer-note">Generated codes are for personal and commercial use. Verify critical barcodes before production printing.</div>
+  </div>
+</footer>
+
 <script>
 /* ══════════════════════════════════════════
    SHARED STATE
@@ -1032,33 +1078,98 @@ const ecMap = () => ({
 let currentEC = 'L';
 
 /* ══ CUSTOM DROPDOWN ══ */
+const OPT_H = 38;
+const VISIBLE_ABOVE = 3;
+
+let _openDd     = null;
+let _openList   = null;
+let _origParent = null;
+let _suppressClose = false; // prevent document-click close when opening
+
+function _ddClose() {
+  if (!_openDd) return;
+  _openDd.classList.remove('open');
+  if (_openList && _origParent) {
+    _origParent.appendChild(_openList);
+    _openList.style.cssText = '';
+  }
+  _openDd = null; _openList = null; _origParent = null;
+}
+
 function ddToggle(id) {
   const dd = document.getElementById(id);
-  const wasOpen = dd.classList.contains('open');
-  document.querySelectorAll('.custom-dd.open').forEach(d => d.classList.remove('open'));
-  if (!wasOpen) dd.classList.add('open');
+  if (_openDd === dd) { _ddClose(); return; }
+  _ddClose();
+
+  const list    = dd.querySelector('.custom-dd-list');
+  const btn     = dd.querySelector('.custom-dd-btn');
+  const btnRect = btn.getBoundingClientRect();
+
+  _origParent = list.parentElement;
+  _openDd     = dd;
+  _openList   = list;
+  dd.classList.add('open');
+
+  // Move to body so it escapes all stacking contexts
+  const listW = Math.max(btnRect.width, 200);
+  list.style.cssText = `display:block;visibility:hidden;position:absolute;top:-9999px;left:-9999px;width:${listW}px;`;
+  document.body.appendChild(list);
+
+  const listH = Math.min(list.scrollHeight, 280);
+  list.style.maxHeight = listH + 'px';
+
+  // Scroll so selected item has VISIBLE_ABOVE rows above it
+  const selected = list.querySelector('.custom-dd-opt.selected');
+  if (selected) {
+    const opts = Array.from(list.querySelectorAll('.custom-dd-opt'));
+    list.scrollTop = Math.max(0, (opts.indexOf(selected) - VISIBLE_ABOVE) * OPT_H);
+  }
+
+  // Position: scrollOffset + viewport coords
+  const sx = window.scrollX || window.pageXOffset;
+  const sy = window.scrollY || window.pageYOffset;
+  const spaceBelow = window.innerHeight - btnRect.bottom;
+  const topPx = (spaceBelow < listH + 8 && btnRect.top > listH + 8)
+    ? sy + btnRect.top - listH - 4
+    : sy + btnRect.bottom + 4;
+
+  list.style.cssText = `display:block;position:absolute;top:${topPx}px;left:${sx + btnRect.left}px;width:${listW}px;max-height:${listH}px;z-index:99999;`;
+
+  // Suppress the document click handler for this same click event
+  _suppressClose = true;
+  setTimeout(() => { _suppressClose = false; }, 0);
 }
+
 function ddSelect(ddId, optEl, callback) {
   const dd  = document.getElementById(ddId);
+  if (!dd) return;
   const val = optEl.dataset.value;
+  if (!val) return; // clicked a group header — ignore
   const lbl = optEl.dataset.label || optEl.textContent.trim();
   const btn = dd.querySelector('.custom-dd-btn');
   btn.textContent = lbl;
-  // Font dropdowns: also apply the font to the button itself
   if (optEl.dataset.font) btn.style.fontFamily = optEl.dataset.font;
   dd.querySelector('input[type="hidden"]').value = val;
-  dd.querySelectorAll('.custom-dd-opt').forEach(o => o.classList.toggle('selected', o === optEl));
-  dd.classList.remove('open');
-  if (callback) callback(val);
+  const list = _openList || dd.querySelector('.custom-dd-list');
+  list.querySelectorAll('.custom-dd-opt').forEach(o => o.classList.toggle('selected', o === optEl));
+  _ddClose();
+  if (callback) callback();
 }
-document.addEventListener('click', e => {
-  if (!e.target.closest('.custom-dd'))
-    document.querySelectorAll('.custom-dd.open').forEach(d => d.classList.remove('open'));
-});
 
-// Old names kept as aliases so existing HTML calls still work
+// Use mousedown to close on outside interaction (fires before click, won't race with ddToggle)
+document.addEventListener('mousedown', e => {
+  if (_suppressClose) return;
+  if (_openList && !_openList.contains(e.target) && !e.target.closest('.custom-dd-btn')) {
+    _ddClose();
+  }
+});
+window.addEventListener('scroll', _ddClose);
+window.addEventListener('resize', _ddClose);
+
 function toggleFontDropdown(id) { ddToggle(id); }
-function selectFont(ddId, optEl) { ddSelect(ddId, optEl, () => { if (ddId==='qr-font-dropdown') updateTitle(); else updateBcTitle(); }); }
+function selectFont(ddId, optEl) {
+  ddSelect(ddId, optEl, () => { if (ddId === 'qr-font-dropdown') updateTitle(); else updateBcTitle(); });
+}
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
@@ -1256,37 +1367,36 @@ async function downloadQR() {
   const cardBg   = hexOrNull('text-bg-hex');
   const st       = state.qr.styles;
 
-  // Preview card layout (mirror CSS exactly):
-  //   .preview-title-area  → padding: 24px 20px 0  (top=24, sides=20)
-  //   #qr-title-preview    → marginBottom: 12px when text present
-  //   .preview-qr-area     → padding: 16px 20px 24px (top=16, sides=20, bot=24)
-  //   #qr-canvas-wrap      → 240×240 fixed (quiet zone is INSIDE this box via .qr-wrapper padding)
-  // So: totalW = 20 + size + 20, totalH = titleH + 16 + size + 24
+  const CARD_R = 20; // card border-radius
+  const QR_R   = 8;  // QR code area radius (matches .qr-wrapper)
+
   const sideP = 20, qrTop = 16, qrBot = 24, titleTop = 24, titleGap = 12;
-  const titleLines = rawTitle.trim() ? rawTitle.split('\n') : [];
-  const lineH      = Math.ceil(fontSize * 1.4);
+  const titleLines  = rawTitle.trim() ? rawTitle.split('\n') : [];
+  const lineH       = Math.ceil(fontSize * 1.4);
   const titleBlockH = titleLines.length > 0 ? titleTop + titleLines.length * lineH + titleGap : 0;
   const totalW = sideP + size + sideP;
   const totalH = titleBlockH + qrTop + size + qrBot;
   const qrX    = sideP;
   const qrY    = titleBlockH + qrTop;
 
-  // Render QR at 'size' px with quiet zone margin baked in
   const qrBitmap = await renderQRBitmap(url, size, fg, bg, margin);
-
   const canvasBg = cardBg ?? bgHex ?? null;
 
   if (state.qr.format === 'svg') {
     const pngB64   = qrBitmap.toDataURL('image/png');
-    const bgRect   = canvasBg ? `<rect width="${totalW}" height="${totalH}" fill="${canvasBg}" rx="16"/>` : '';
+    const bgRect   = canvasBg ? `<rect width="${totalW}" height="${totalH}" fill="${canvasBg}" rx="${CARD_R}"/>` : '';
+    // QR image clipped to rounded rect
+    const clipId   = 'qrClip';
     const titleSVG = buildTitleSVG(titleLines, fontSize, family, spacing, color, st, state.qr.align, sideP, titleTop, totalW, lineH);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}">${bgRect}${titleSVG}<image href="${pngB64}" x="${qrX}" y="${qrY}" width="${size}" height="${size}"/></svg>`;
+    const defs = `<defs><clipPath id="${clipId}"><rect x="${qrX}" y="${qrY}" width="${size}" height="${size}" rx="${QR_R}"/></clipPath></defs>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}">${defs}${bgRect}${titleSVG}<image clip-path="url(#${clipId})" href="${pngB64}" x="${qrX}" y="${qrY}" width="${size}" height="${size}"/></svg>`;
     triggerBlob(new Blob([svg],{type:'image/svg+xml'}), 'qr-code.svg'); return;
   }
 
   const canvas = buildRasterCanvas(totalW, totalH, canvasBg,
     titleLines, fontSize, family, spacing, color, st, state.qr.align, sideP, titleTop, lineH);
-  canvas.getContext('2d').drawImage(qrBitmap, qrX, qrY, size, size);
+  // Draw QR with rounded corners
+  drawRounded(canvas.getContext('2d'), qrBitmap, qrX, qrY, size, size, QR_R);
   exportCanvas(canvas, state.qr.format, 'qr-code');
 }
 
@@ -1370,6 +1480,9 @@ async function downloadBarcode() {
   const st       = state.bc.styles;
   const bcSvg    = document.getElementById('bc-svg');
 
+  const CARD_R = 20; // card border-radius
+  const BC_R   = 8;  // barcode image corner radius
+
   // Actual rendered pixel dimensions
   const rect = bcSvg.getBoundingClientRect();
   const svgW = Math.round(rect.width)  || 300;
@@ -1391,7 +1504,6 @@ async function downloadBarcode() {
     const clone = bcSvg.cloneNode(true);
     clone.setAttribute('width', svgW);
     clone.setAttribute('height', svgH);
-    // Remove all top-level rect children that are background fills
     Array.from(clone.children).forEach(el => {
       if (el.tagName === 'rect' && (el.getAttribute('width') === '100%' || parseFloat(el.getAttribute('width')) >= svgW * 0.9))
         el.remove();
@@ -1400,20 +1512,21 @@ async function downloadBarcode() {
   })();
 
   if (state.bc.format === 'svg') {
-    // Embed clean barcode as base64 data URI inside wrapper SVG
     const b64    = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(cleanSvgStr)));
-    const bgRect = canvasBg ? `<rect width="${totalW}" height="${totalH}" fill="${canvasBg}" rx="16"/>` : '';
+    const bgRect = canvasBg ? `<rect width="${totalW}" height="${totalH}" fill="${canvasBg}" rx="${CARD_R}"/>` : '';
+    const clipId = 'bcClip';
+    const defs   = `<defs><clipPath id="${clipId}"><rect x="${bcX}" y="${bcY}" width="${svgW}" height="${svgH}" rx="${BC_R}"/></clipPath></defs>`;
     const titleSVG = buildTitleSVG(titleLines, fontSize, family, spacing, color, st, state.bc.align, sideP, titleTop, totalW, lineH);
-    const out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}">${bgRect}${titleSVG}<image href="${b64}" x="${bcX}" y="${bcY}" width="${svgW}" height="${svgH}"/></svg>`;
+    const out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}">${defs}${bgRect}${titleSVG}<image clip-path="url(#${clipId})" href="${b64}" x="${bcX}" y="${bcY}" width="${svgW}" height="${svgH}"/></svg>`;
     triggerBlob(new Blob([out], {type:'image/svg+xml'}), 'barcode.svg');
     return;
   }
 
-  // Raster: draw barcode via data URI to avoid canvas taint
+  // Raster: draw barcode with rounded corners
   const bcBitmap = await svgToCanvas(bcSvg, svgW, svgH);
   const canvas   = buildRasterCanvas(totalW, totalH, canvasBg,
     titleLines, fontSize, family, spacing, color, st, state.bc.align, sideP, titleTop, lineH);
-  canvas.getContext('2d').drawImage(bcBitmap, bcX, bcY, svgW, svgH);
+  drawRounded(canvas.getContext('2d'), bcBitmap, bcX, bcY, svgW, svgH, BC_R);
   exportCanvas(canvas, state.bc.format, 'barcode');
 }
 
@@ -1443,11 +1556,43 @@ function buildTitleSVG(lines, fontSize, family, spacing, color, st, align, sideP
   return out;
 }
 
+/* ── Canvas rounded-rect helpers ── */
+function canvasRoundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y,     x + w, y + r,     r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x,     y + h, x,     y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x,     y,     x + r, y,         r);
+  ctx.closePath();
+}
+
+// Draw source image/canvas clipped to a rounded rect
+function drawRounded(ctx, source, x, y, w, h, r) {
+  ctx.save();
+  canvasRoundRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  ctx.drawImage(source, x, y, w, h);
+  ctx.restore();
+}
+
 function buildRasterCanvas(totalW, totalH, bgColor, titleLines, fontSize, family, spacing, color, st, align, sideP, titleTop, lineH) {
+  const CARD_R = 20; // card corner radius, matches CSS border-radius: 20px
   const canvas = document.createElement('canvas');
   canvas.width = totalW; canvas.height = totalH;
   const ctx = canvas.getContext('2d');
-  if (bgColor) { ctx.fillStyle = bgColor; ctx.fillRect(0, 0, totalW, totalH); }
+
+  // Fill card background with rounded corners
+  if (bgColor) {
+    ctx.fillStyle = bgColor;
+    canvasRoundRect(ctx, 0, 0, totalW, totalH, CARD_R);
+    ctx.fill();
+  }
 
   if (!titleLines.length) return canvas;
 
