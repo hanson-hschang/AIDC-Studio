@@ -1,0 +1,47 @@
+/*
+ * layout.css
+ *
+ * Page-level layout: the two-column workspace grid, control column, card
+ * containers, card labels, field labels, and the two-column form grid.
+ */
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 28px;
+  padding-bottom: 60px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .workspace { grid-template-columns: 1fr; }
+  .preview-col { order: -1; position: static !important; width: 360px; max-width: 100%; margin: 0 auto; }
+}
+
+.controls-col { display: flex; flex-direction: column; gap: 20px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px;
+  transition: border-color 0.2s;
+  animation: fadeUp 0.4s ease both;
+}
+.card:nth-child(2) { animation-delay: 0.05s; }
+.card:nth-child(3) { animation-delay: 0.10s; }
+.card:focus-within { border-color: rgba(232,213,163,0.25); }
+
+.card-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+label.field-label {
+  display: block; font-size: 11px; color: var(--muted);
+  margin-bottom: 7px; letter-spacing: 0.4px;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }

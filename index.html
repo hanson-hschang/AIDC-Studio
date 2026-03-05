@@ -10,468 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #000000;
-  --surface: #111114;
-  --surface2: #1a1a20;
-  --border: #272732;
-  --accent: #e8d5a3;
-  --accent2: #c4a96b;
-  --text: #f0ede6;
-  --muted: #8a8799;
-  --ctrl-h: 40px;
-}
-
-html, body {
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  overflow-x: hidden;
-}
-
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(232,213,163,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(163,196,232,0.03) 0%, transparent 60%);
-  pointer-events: none; z-index: 0;
-}
-
-.grain {
-  position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none; z-index: 0; opacity: 0.4;
-}
-
-.app {
-  position: relative; z-index: 1;
-  max-width: 1200px; margin: 0 auto; padding: 0 16px;
-}
-
-/* ── HEADER ── */
-header {
-  padding: 28px 0 0;
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-}
-.logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: var(--accent);
-  white-space: nowrap;
-}
-.logo .logo-sub {
-  color: var(--muted); font-weight: 400; font-size: 11px;
-  font-family: 'DM Mono', monospace; letter-spacing: 3px;
-  text-transform: uppercase; margin-left: 8px;
-}
-.tagline {
-  margin-left: auto; font-size: 11px; color: var(--muted);
-  font-family: 'DM Mono', monospace; letter-spacing: 1px;
-}
-@media (max-width: 600px) { .tagline { display: none; } }
-
-/* ── TABS ── */
-.tab-bar {
-  display: flex; gap: 0;
-  border-bottom: 1px solid var(--border);
-  margin-top: 20px;
-  margin-bottom: 32px;
-}
-.tab-btn {
-  background: none; border: none; cursor: pointer;
-  padding: 12px 24px;
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  letter-spacing: 2px; text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.2s, border-color 0.2s;
-  display: flex; align-items: center; gap: 8px;
-}
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active[data-tab="qr"] { color: var(--accent); border-bottom-color: var(--accent2); }
-.tab-btn.active[data-tab="barcode"] { color: var(--accent); border-bottom-color: var(--accent2); }
-.tab-btn svg { opacity: 0.7; }
-.tab-btn.active svg { opacity: 1; }
-
-/* ── TAB PANELS ── */
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ── LAYOUT ── */
-.workspace {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 28px;
-  padding-bottom: 60px;
-  align-items: start;
-}
-@media (max-width: 860px) {
-  .workspace { grid-template-columns: 1fr; }
-  .preview-col { order: -1; position: static !important; width: 360px; max-width: 100%; margin: 0 auto; }
-}
-
-.controls-col { display: flex; flex-direction: column; gap: 20px; }
-
-/* ── CARDS ── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px; padding: 24px;
-  transition: border-color 0.2s;
-  animation: fadeUp 0.4s ease both;
-}
-.card:nth-child(2) { animation-delay: 0.05s; }
-.card:nth-child(3) { animation-delay: 0.10s; }
-.card:focus-within { border-color: rgba(232,213,163,0.25); }
-
-.card-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px; letter-spacing: 3px;
-  text-transform: uppercase; color: var(--muted);
-  margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px;
-}
-.card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-label.field-label {
-  display: block; font-size: 11px; color: var(--muted);
-  margin-bottom: 7px; letter-spacing: 0.4px;
-}
-
-/* ── INPUTS ── */
-.input-wrap { position: relative; }
-input[type="text"], input[type="url"] {
-  width: 100%; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 0 16px;
-  height: var(--ctrl-h); line-height: var(--ctrl-h);
-  box-sizing: border-box;
-  font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-input[type="text"]:focus, input[type="url"]:focus {
-  border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(232,213,163,0.08);
-}
-input::placeholder { color: var(--muted); }
-
-textarea.multi-input {
-  width: 100%; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 10px;
-  padding: 12px 56px 12px 16px;
-  font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); outline: none;
-  resize: vertical; min-height: 76px;
-  transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.5;
-}
-textarea.multi-input:focus {
-  border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(232,213,163,0.08);
-}
-textarea::placeholder { color: var(--muted); }
-
-.char-count {
-  position: absolute; right: 12px; top: 10px;
-  font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
-}
-
-/* ── SELECT ── */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-/* ── COLOR PICKERS ── */
-.color-row { display: flex; align-items: center; gap: 8px; }
-.color-swatch-btn {
-  width: var(--ctrl-h); height: var(--ctrl-h); border-radius: 8px;
-  border: 2px solid var(--border); cursor: pointer;
-  transition: border-color 0.2s, transform 0.15s;
-  position: relative; overflow: hidden; flex-shrink: 0;
-}
-.color-swatch-btn:hover { border-color: var(--accent2); transform: scale(1.05); }
-.color-swatch-btn input[type="color"] {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  opacity: 0; cursor: pointer; border: none; padding: 0;
-}
-.color-hex {
-  font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text);
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 0 10px; height: var(--ctrl-h); line-height: var(--ctrl-h);
-  box-sizing: border-box;
-  flex: 1; outline: none; transition: border-color 0.2s; min-width: 0;
-}
-.color-hex:focus { border-color: var(--accent2); }
-
-/* ── ALIGN BTNS ── */
-.align-btns { display: flex; gap: 6px; }
-.align-btn {
-  flex: 1; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; height: var(--ctrl-h); color: var(--muted);
-  cursor: pointer; transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center; min-width: 0;
-  padding: 0; box-sizing: border-box;
-}
-.align-btn:hover { border-color: var(--accent2); color: var(--accent); }
-.align-btn.active { background: rgba(232,213,163,0.1); border-color: var(--accent2); color: var(--accent); }
-
-/* ── STYLE CHIPS — compact, no-wrap, same height as controls ── */
-.style-opts {
-  display: flex; gap: 5px; flex-wrap: nowrap;
-  height: var(--ctrl-h); /* force same height as select/input neighbours */
-  align-items: stretch;
-}
-.style-chip {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; font-size: 13px;
-  color: var(--muted); cursor: pointer; transition: all 0.15s;
-  user-select: none; white-space: nowrap; flex: 1; min-width: 0;
-  display: flex; align-items: center; justify-content: center; padding: 0;
-  box-sizing: border-box;
-}
-.style-chip:hover { border-color: var(--accent2); color: var(--accent); }
-.style-chip.active { background: rgba(232,213,163,0.12); border-color: var(--accent2); color: var(--accent); }
-
-/* ── CUSTOM DROPDOWN ── */
-.custom-dd { position: relative; width: 100%; }
-.custom-dd-btn {
-  width: 100%; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 0 32px 0 12px; height: var(--ctrl-h);
-  box-sizing: border-box; font-size: 13px; color: var(--text); outline: none;
-  cursor: pointer; text-align: left; transition: border-color 0.2s;
-  display: flex; align-items: center;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8799' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  font-family: 'DM Sans', sans-serif;
-}
-.custom-dd-btn:hover, .custom-dd.open .custom-dd-btn { border-color: var(--accent2); }
-.custom-dd-list {
-  display: none; position: absolute;
-  background: var(--surface2); border: 1px solid var(--accent2);
-  border-radius: 10px; z-index: 99999;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-  max-height: 280px; overflow-y: auto;
-  /* position/size set by JS after teleporting to body */
-}
-.custom-dd.open .custom-dd-list { display: block; }
-.custom-dd-opt {
-  padding: 9px 14px; font-size: 13px; color: var(--text);
-  cursor: pointer; transition: background 0.1s; white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
-}
-.custom-dd-opt:hover { background: rgba(232,213,163,0.10); }
-.custom-dd-opt.selected { color: var(--accent); background: rgba(232,213,163,0.08); }
-.ec-btns { display: flex; gap: 6px; }
-.ec-btn {
-  flex: 1; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; height: var(--ctrl-h); padding: 0 4px;
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  color: var(--muted); cursor: pointer; transition: all 0.15s; text-align: center;
-  display: flex; align-items: center; justify-content: center; flex-direction: column;
-  box-sizing: border-box;
-}
-.ec-btn:hover { border-color: var(--accent2); color: var(--accent); }
-.ec-btn.active { background: rgba(232,213,163,0.1); border-color: var(--accent2); color: var(--accent); }
-.tooltip { font-size: 10px; color: var(--muted); margin-top: 6px; font-family: 'DM Mono', monospace; }
-
-/* ── PREVIEW COL ── */
-.preview-col {
-  display: flex; flex-direction: column; gap: 18px;
-  position: sticky; top: 24px; align-self: start;
-}
-
-/* ── PREVIEW CARD ──
-   The text-bg covers the ENTIRE card background (title + QR area), with rounded corners.
-   We use a layered structure: outer card has the text-bg color; inner .qr-zone holds the QR. */
-.preview-card {
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-  animation: fadeUp 0.4s ease 0.1s both;
-  transition: background 0.3s;
-  background: #000000;
-}
-.preview-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-  opacity: 0.5; z-index: 1; pointer-events: none;
-}
-
-/* Title area inside preview */
-.preview-title-area {
-  padding: 24px 20px 0;
-  width: 100%;
-}
-#qr-title-preview {
-  width: 100%; white-space: pre-wrap; word-break: break-word;
-  transition: all 0.2s; line-height: 1.4;
-}
-
-/* QR area — centered, padded */
-.preview-qr-area {
-  padding: 16px 20px 24px;
-  display: flex; align-items: center; justify-content: center;
-}
-
-#qr-canvas-wrap {
-  width: 240px; height: 240px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-#qr-canvas-wrap canvas, #qr-canvas-wrap img {
-  max-width: 100%; max-height: 100%; display: block;
-}
-.qr-placeholder {
-  width: 240px; height: 240px;
-  border: 2px dashed var(--border); border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 12px; color: var(--muted);
-  text-align: center;
-}
-.qr-placeholder svg { opacity: 0.3; }
-.qr-placeholder p { font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-align: center; }
-.qr-wrapper { border-radius: 8px; transition: background 0.3s; display: inline-block; }
-.qr-wrapper img, .qr-wrapper canvas { display: block; }
-
-/* ── BARCODE PREVIEW ── */
-.bc-preview-card {
-  border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-  position: relative; animation: fadeUp 0.4s ease 0.1s both;
-  transition: background 0.3s; background: #000000;
-}
-.bc-preview-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-  opacity: 0.5; z-index: 1; pointer-events: none;
-}
-.bc-title-area { padding: 24px 20px 0; width: 100%; }
-#bc-title-preview { width: 100%; white-space: pre-wrap; word-break: break-word; transition: all 0.2s; line-height: 1.4; }
-.bc-code-area {
-  padding: 16px 20px 24px;
-  display: flex; align-items: center; justify-content: center;
-}
-#bc-canvas-wrap {
-  max-width: 100%; display: flex; align-items: center; justify-content: center;
-}
-#bc-svg { max-width: 100%; display: block; border-radius: 8px; overflow: hidden; }
-.bc-placeholder {
-  width: 100%; min-height: 120px;
-  border: 2px dashed var(--border); border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 12px; color: var(--muted); padding: 20px;
-  text-align: center;
-}
-.bc-placeholder svg { opacity: 0.3; }
-.bc-placeholder p { font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-align: center; }
-
-/* ── QR COLORS ── */
-.qr-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-/* ── DOWNLOAD ── */
-.dl-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 16px; padding: 22px;
-  animation: fadeUp 0.4s ease 0.15s both;
-}
-.format-row {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 7px; margin-bottom: 14px;
-}
-.fmt-btn {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 9px 4px;
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  letter-spacing: 1px; color: var(--muted); cursor: pointer;
-  transition: all 0.15s; text-align: center; text-transform: uppercase;
-}
-.fmt-btn {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; height: var(--ctrl-h); padding: 0 4px;
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  letter-spacing: 1px; color: var(--muted); cursor: pointer;
-  transition: all 0.15s; text-align: center; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: center;
-  box-sizing: border-box;
-}
-.fmt-btn:hover { border-color: var(--accent2); color: var(--accent); }
-.fmt-btn.active { background: rgba(232,213,163,0.1); border-color: var(--accent2); color: var(--accent); font-weight: 500; }
-
-.dl-btn {
-  width: 100%; background: var(--accent); color: #0d0d0f;
-  border: none; border-radius: 10px; padding: 13px;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-  cursor: pointer; letter-spacing: 0.3px; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.dl-btn:hover:not(:disabled) { background: #f0e0b8; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,213,163,0.2); }
-.dl-btn:active:not(:disabled) { transform: translateY(0); }
-.dl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.88) translateY(8px); }
-  60%  { opacity: 1; transform: scale(1.03) translateY(-2px); }
-  100% { opacity: 1; transform: scale(1)    translateY(0); }
-}
-@keyframes flash {
-  0%   { box-shadow: 0 0 0 0   rgba(232,213,163,0.35); }
-  100% { box-shadow: 0 0 0 18px rgba(232,213,163,0); }
-}
-.flash     { animation: flash 0.5s ease-out; }
-.flashBlue { animation: flash 0.5s ease-out; }
-.bc-pop    { animation: popIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
-
-/* Transparent color swatch — checkered pattern */
-.color-swatch-btn.transparent-swatch {
-  background-image:
-    linear-gradient(45deg, #555 25%, transparent 25%),
-    linear-gradient(-45deg, #555 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #555 75%),
-    linear-gradient(-45deg, transparent 75%, #555 75%) !important;
-  background-size: 8px 8px !important;
-  background-position: 0 0, 0 4px, 4px -4px, -4px 0px !important;
-  background-color: #333 !important;
-}
-.err-msg { font-size: 11px; color: #e05c5c; font-family: 'DM Mono', monospace; margin-top: 6px; display: none; }
-.err-msg.show { display: block; }
-
-/* ── FOOTER ── */
-footer {
-  position: relative; z-index: 1;
-  border-top: 1px solid var(--border);
-  margin-top: 20px;
-  padding: 40px 16px 48px;
-}
-.footer-inner {
-  max-width: 1200px; margin: 0 auto;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  text-align: center;
-}
-.footer-logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px; font-weight: 700; color: var(--accent);
-  letter-spacing: -0.3px; margin-bottom: 4px;
-}
-.footer-copy {
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  color: var(--muted); letter-spacing: 0.5px;
-}
-.footer-links {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'DM Mono', monospace; font-size: 10px;
-  color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
-}
-.footer-sep { color: var(--border); }
-.footer-note {
-  font-size: 11px; color: var(--border); font-family: 'DM Sans', sans-serif;
-  max-width: 480px; line-height: 1.6; margin-top: 6px;
-}
-</style>
+<link rel="stylesheet" href="src/css/global-styles.css">
 </head>
 <body>
 <div class="grain"></div>
@@ -484,7 +23,7 @@ footer {
 
   <!-- TAB BAR -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="qr" onclick="switchTab('qr')">
+    <button class="tab-btn active" data-tab="qr">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
@@ -493,7 +32,7 @@ footer {
       </svg>
       QR Code
     </button>
-    <button class="tab-btn" data-tab="barcode" onclick="switchTab('barcode')">
+    <button class="tab-btn" data-tab="barcode">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="4" y1="4" x2="4" y2="20"/><line x1="7" y1="4" x2="7" y2="20"/>
         <line x1="10" y1="4" x2="10" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
@@ -513,21 +52,20 @@ footer {
         <div class="card">
           <div class="card-label">Content &amp; Format</div>
           <div class="input-wrap" style="margin-bottom:12px;">
-            <input type="url" id="url-input" placeholder="https://your-url-here.com" oninput="updateQR()">
+            <input type="url" id="url-input" placeholder="https://your-url-here.com">
           </div>
           <div class="input-wrap" style="margin-bottom:14px;">
             <textarea id="title-input" class="multi-input"
-              placeholder="Title label — press Enter for a new line (optional)"
-              oninput="updateTitle()" maxlength="200"></textarea>
+              placeholder="Title label — press Enter for a new line (optional)" maxlength="200"></textarea>
             <span class="char-count" id="char-count">0/200</span>
           </div>
           <div>
             <label class="field-label">Error Correction Level</label>
             <div class="ec-btns">
-              <button class="ec-btn active" data-ec="L" onclick="setEC('L')">L<br><span style="font-size:9px;opacity:0.6;">7%</span></button>
-              <button class="ec-btn"        data-ec="M" onclick="setEC('M')">M<br><span style="font-size:9px;opacity:0.6;">15%</span></button>
-              <button class="ec-btn"        data-ec="Q" onclick="setEC('Q')">Q<br><span style="font-size:9px;opacity:0.6;">25%</span></button>
-              <button class="ec-btn"        data-ec="H" onclick="setEC('H')">H<br><span style="font-size:9px;opacity:0.6;">30%</span></button>
+              <button class="ec-btn active" data-ec="L">L<br><span style="font-size:9px;opacity:0.6;">7%</span></button>
+              <button class="ec-btn"        data-ec="M">M<br><span style="font-size:9px;opacity:0.6;">15%</span></button>
+              <button class="ec-btn"        data-ec="Q">Q<br><span style="font-size:9px;opacity:0.6;">25%</span></button>
+              <button class="ec-btn"        data-ec="H">H<br><span style="font-size:9px;opacity:0.6;">30%</span></button>
             </div>
             <div class="tooltip">Higher = more damage-resistant but denser</div>
           </div>
@@ -540,16 +78,16 @@ footer {
             <div>
               <label class="field-label">Font Family</label>
               <div class="custom-dd" id="qr-font-dropdown">
-                <button type="button" class="custom-dd-btn" style="font-family:'DM Sans',sans-serif" onclick="ddToggle('qr-font-dropdown')">DM Sans</button>
+                <button type="button" class="custom-dd-btn" style="font-family:'DM Sans',sans-serif">DM Sans</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="'Playfair Display', serif" data-font="'Playfair Display',serif" style="font-family:'Playfair Display',serif" onclick="selectFont('qr-font-dropdown',this)">Playfair Display</div>
-                  <div class="custom-dd-opt selected" data-value="'DM Sans', sans-serif" data-font="'DM Sans',sans-serif" style="font-family:'DM Sans',sans-serif" onclick="selectFont('qr-font-dropdown',this)">DM Sans</div>
-                  <div class="custom-dd-opt" data-value="'DM Mono', monospace" data-font="'DM Mono',monospace" style="font-family:'DM Mono',monospace" onclick="selectFont('qr-font-dropdown',this)">DM Mono</div>
-                  <div class="custom-dd-opt" data-value="Georgia, serif" data-font="Georgia,serif" style="font-family:Georgia,serif" onclick="selectFont('qr-font-dropdown',this)">Georgia</div>
-                  <div class="custom-dd-opt" data-value="'Trebuchet MS', sans-serif" data-font="'Trebuchet MS',sans-serif" style="font-family:'Trebuchet MS',sans-serif" onclick="selectFont('qr-font-dropdown',this)">Trebuchet MS</div>
-                  <div class="custom-dd-opt" data-value="Impact, sans-serif" data-font="Impact,sans-serif" style="font-family:Impact,sans-serif" onclick="selectFont('qr-font-dropdown',this)">Impact</div>
-                  <div class="custom-dd-opt" data-value="'Courier New', monospace" data-font="'Courier New',monospace" style="font-family:'Courier New',monospace" onclick="selectFont('qr-font-dropdown',this)">Courier New</div>
-                  <div class="custom-dd-opt" data-value="'Times New Roman', serif" data-font="'Times New Roman',serif" style="font-family:'Times New Roman',serif" onclick="selectFont('qr-font-dropdown',this)">Times New Roman</div>
+                  <div class="custom-dd-opt" data-value="'Playfair Display', serif" data-font="'Playfair Display',serif" style="font-family:'Playfair Display',serif">Playfair Display</div>
+                  <div class="custom-dd-opt selected" data-value="'DM Sans', sans-serif" data-font="'DM Sans',sans-serif" style="font-family:'DM Sans',sans-serif">DM Sans</div>
+                  <div class="custom-dd-opt" data-value="'DM Mono', monospace" data-font="'DM Mono',monospace" style="font-family:'DM Mono',monospace">DM Mono</div>
+                  <div class="custom-dd-opt" data-value="Georgia, serif" data-font="Georgia,serif" style="font-family:Georgia,serif">Georgia</div>
+                  <div class="custom-dd-opt" data-value="'Trebuchet MS', sans-serif" data-font="'Trebuchet MS',sans-serif" style="font-family:'Trebuchet MS',sans-serif">Trebuchet MS</div>
+                  <div class="custom-dd-opt" data-value="Impact, sans-serif" data-font="Impact,sans-serif" style="font-family:Impact,sans-serif">Impact</div>
+                  <div class="custom-dd-opt" data-value="'Courier New', monospace" data-font="'Courier New',monospace" style="font-family:'Courier New',monospace">Courier New</div>
+                  <div class="custom-dd-opt" data-value="'Times New Roman', serif" data-font="'Times New Roman',serif" style="font-family:'Times New Roman',serif">Times New Roman</div>
                 </div>
                 <input type="hidden" id="font-family" value="'DM Sans', sans-serif">
               </div>
@@ -557,10 +95,10 @@ footer {
             <div>
               <label class="field-label">Style</label>
               <div class="style-opts">
-                <span class="style-chip" data-style="bold"      onclick="toggleStyle('bold','qr')"><b>B</b></span>
-                <span class="style-chip" data-style="italic"    onclick="toggleStyle('italic','qr')"><i>I</i></span>
-                <span class="style-chip" data-style="underline" onclick="toggleStyle('underline','qr')" style="text-decoration:underline;">U</span>
-                <span class="style-chip" data-style="smallcaps" onclick="toggleStyle('smallcaps','qr')">S<span style="font-size:.78em">C</span></span>
+                <span class="style-chip" data-style="bold"><b>B</b></span>
+                <span class="style-chip" data-style="italic"><i>I</i></span>
+                <span class="style-chip" data-style="underline" style="text-decoration:underline;">U</span>
+                <span class="style-chip" data-style="smallcaps">S<span style="font-size:.78em">C</span></span>
               </div>
             </div>
           </div>
@@ -569,20 +107,20 @@ footer {
             <div>
               <label class="field-label">Font Size</label>
               <div class="custom-dd" id="qr-font-size-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('qr-font-size-dd')">18px — Default</button>
+                <button type="button" class="custom-dd-btn">18px — Default</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="10" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">10px — Tiny</div>
-                  <div class="custom-dd-opt" data-value="12" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">12px — Small</div>
-                  <div class="custom-dd-opt" data-value="14" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">14px — Base</div>
-                  <div class="custom-dd-opt" data-value="16" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">16px — Medium</div>
-                  <div class="custom-dd-opt selected" data-value="18" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">18px — Default</div>
-                  <div class="custom-dd-opt" data-value="20" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">20px — Large</div>
-                  <div class="custom-dd-opt" data-value="24" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">24px — XL</div>
-                  <div class="custom-dd-opt" data-value="28" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">28px — 2XL</div>
-                  <div class="custom-dd-opt" data-value="32" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">32px — 3XL</div>
-                  <div class="custom-dd-opt" data-value="36" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">36px — 4XL</div>
-                  <div class="custom-dd-opt" data-value="42" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">42px — 5XL</div>
-                  <div class="custom-dd-opt" data-value="48" onclick="ddSelect('qr-font-size-dd',this,updateTitle)">48px — Display</div>
+                  <div class="custom-dd-opt" data-value="10">10px — Tiny</div>
+                  <div class="custom-dd-opt" data-value="12">12px — Small</div>
+                  <div class="custom-dd-opt" data-value="14">14px — Base</div>
+                  <div class="custom-dd-opt" data-value="16">16px — Medium</div>
+                  <div class="custom-dd-opt selected" data-value="18">18px — Default</div>
+                  <div class="custom-dd-opt" data-value="20">20px — Large</div>
+                  <div class="custom-dd-opt" data-value="24">24px — XL</div>
+                  <div class="custom-dd-opt" data-value="28">28px — 2XL</div>
+                  <div class="custom-dd-opt" data-value="32">32px — 3XL</div>
+                  <div class="custom-dd-opt" data-value="36">36px — 4XL</div>
+                  <div class="custom-dd-opt" data-value="42">42px — 5XL</div>
+                  <div class="custom-dd-opt" data-value="48">48px — Display</div>
                 </div>
                 <input type="hidden" id="font-size" value="18">
               </div>
@@ -590,16 +128,16 @@ footer {
             <div>
               <label class="field-label">Letter Spacing</label>
               <div class="custom-dd" id="qr-letter-spacing-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('qr-letter-spacing-dd')">0px — Normal</button>
+                <button type="button" class="custom-dd-btn">0px — Normal</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="-2" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">-2px — Tight</div>
-                  <div class="custom-dd-opt" data-value="-1" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">-1px — Snug</div>
-                  <div class="custom-dd-opt selected" data-value="0" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">0px — Normal</div>
-                  <div class="custom-dd-opt" data-value="1" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">1px — Relaxed</div>
-                  <div class="custom-dd-opt" data-value="2" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">2px — Wide</div>
-                  <div class="custom-dd-opt" data-value="4" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">4px — Wider</div>
-                  <div class="custom-dd-opt" data-value="6" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">6px — Widest</div>
-                  <div class="custom-dd-opt" data-value="10" onclick="ddSelect('qr-letter-spacing-dd',this,updateTitle)">10px — Ultra</div>
+                  <div class="custom-dd-opt" data-value="-2">-2px — Tight</div>
+                  <div class="custom-dd-opt" data-value="-1">-1px — Snug</div>
+                  <div class="custom-dd-opt selected" data-value="0">0px — Normal</div>
+                  <div class="custom-dd-opt" data-value="1">1px — Relaxed</div>
+                  <div class="custom-dd-opt" data-value="2">2px — Wide</div>
+                  <div class="custom-dd-opt" data-value="4">4px — Wider</div>
+                  <div class="custom-dd-opt" data-value="6">6px — Widest</div>
+                  <div class="custom-dd-opt" data-value="10">10px — Ultra</div>
                 </div>
                 <input type="hidden" id="letter-spacing" value="0">
               </div>
@@ -611,24 +149,20 @@ footer {
               <label class="field-label">Text Color</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="text-color-swatch" style="background:#ffffff;">
-                  <input type="color" id="text-color" value="#ffffff"
-                    oninput="syncColor('text-color','text-color-hex','text-color-swatch'); updateTitle()">
+                  <input type="color" id="text-color" value="#ffffff">
                 </div>
                 <input type="text" class="color-hex" id="text-color-hex" value="#ffffff"
-                  placeholder="none"
-                  oninput="syncHex('text-color-hex','text-color','text-color-swatch'); updateTitle()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
             <div>
               <label class="field-label">Card Background</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="text-bg-swatch" style="background:#000000;">
-                  <input type="color" id="text-bg" value="#000000"
-                    oninput="syncColor('text-bg','text-bg-hex','text-bg-swatch'); updateTitle()">
+                  <input type="color" id="text-bg" value="#000000">
                 </div>
                 <input type="text" class="color-hex" id="text-bg-hex" value="#000000"
-                  placeholder="none"
-                  oninput="syncHex('text-bg-hex','text-bg','text-bg-swatch'); updateTitle()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
           </div>
@@ -636,16 +170,16 @@ footer {
           <div style="margin-bottom:0;">
             <label class="field-label">Text Alignment</label>
             <div class="align-btns">
-              <button class="align-btn" data-align="left" onclick="setAlign('left','qr')">
+              <button class="align-btn" data-align="left">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="0" y="4" width="11" height="2"/><rect x="0" y="8" width="14" height="2"/><rect x="0" y="12" width="9" height="2"/></svg>
               </button>
-              <button class="align-btn active" data-align="center" onclick="setAlign('center','qr')">
+              <button class="align-btn active" data-align="center">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="2.5" y="4" width="11" height="2"/><rect x="1" y="8" width="14" height="2"/><rect x="3.5" y="12" width="9" height="2"/></svg>
               </button>
-              <button class="align-btn" data-align="right" onclick="setAlign('right','qr')">
+              <button class="align-btn" data-align="right">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="5" y="4" width="11" height="2"/><rect x="2" y="8" width="14" height="2"/><rect x="7" y="12" width="9" height="2"/></svg>
               </button>
-              <button class="align-btn" data-align="justify" onclick="setAlign('justify','qr')">
+              <button class="align-btn" data-align="justify">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="0" y="4" width="16" height="2"/><rect x="0" y="8" width="16" height="2"/><rect x="0" y="12" width="11" height="2"/></svg>
               </button>
             </div>
@@ -660,24 +194,20 @@ footer {
               <label class="field-label">QR Color</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="qr-fg-swatch" style="background:#000000;">
-                  <input type="color" id="qr-fg" value="#000000"
-                    oninput="syncColor('qr-fg','qr-fg-hex','qr-fg-swatch'); updateQR()">
+                  <input type="color" id="qr-fg" value="#000000">
                 </div>
                 <input type="text" class="color-hex" id="qr-fg-hex" value="#000000"
-                  placeholder="none"
-                  oninput="syncHex('qr-fg-hex','qr-fg','qr-fg-swatch'); updateQR()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
             <div>
               <label class="field-label">QR Background</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="qr-bg-swatch" style="background:#ffffff;">
-                  <input type="color" id="qr-bg" value="#ffffff"
-                    oninput="syncColor('qr-bg','qr-bg-hex','qr-bg-swatch'); updateQR()">
+                  <input type="color" id="qr-bg" value="#ffffff">
                 </div>
                 <input type="text" class="color-hex" id="qr-bg-hex" value="#ffffff"
-                  placeholder="none"
-                  oninput="syncHex('qr-bg-hex','qr-bg','qr-bg-swatch'); updateQR()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
           </div>
@@ -686,16 +216,16 @@ footer {
             <div>
               <label class="field-label">QR Size</label>
               <div class="custom-dd" id="qr-size-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('qr-size-dd')">240px — Default</button>
+                <button type="button" class="custom-dd-btn">240px — Default</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="128" onclick="ddSelect('qr-size-dd',this,updateQR)">128px — Tiny</div>
-                  <div class="custom-dd-opt" data-value="160" onclick="ddSelect('qr-size-dd',this,updateQR)">160px — Small</div>
-                  <div class="custom-dd-opt" data-value="200" onclick="ddSelect('qr-size-dd',this,updateQR)">200px — Medium</div>
-                  <div class="custom-dd-opt selected" data-value="240" onclick="ddSelect('qr-size-dd',this,updateQR)">240px — Default</div>
-                  <div class="custom-dd-opt" data-value="300" onclick="ddSelect('qr-size-dd',this,updateQR)">300px — Large</div>
-                  <div class="custom-dd-opt" data-value="360" onclick="ddSelect('qr-size-dd',this,updateQR)">360px — XL</div>
-                  <div class="custom-dd-opt" data-value="420" onclick="ddSelect('qr-size-dd',this,updateQR)">420px — 2XL</div>
-                  <div class="custom-dd-opt" data-value="512" onclick="ddSelect('qr-size-dd',this,updateQR)">512px — Max</div>
+                  <div class="custom-dd-opt" data-value="128">128px — Tiny</div>
+                  <div class="custom-dd-opt" data-value="160">160px — Small</div>
+                  <div class="custom-dd-opt" data-value="200">200px — Medium</div>
+                  <div class="custom-dd-opt selected" data-value="240">240px — Default</div>
+                  <div class="custom-dd-opt" data-value="300">300px — Large</div>
+                  <div class="custom-dd-opt" data-value="360">360px — XL</div>
+                  <div class="custom-dd-opt" data-value="420">420px — 2XL</div>
+                  <div class="custom-dd-opt" data-value="512">512px — Max</div>
                 </div>
                 <input type="hidden" id="qr-size" value="240">
               </div>
@@ -703,16 +233,16 @@ footer {
             <div>
               <label class="field-label">Quiet Zone</label>
               <div class="custom-dd" id="qr-margin-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('qr-margin-dd')">16px — Default</button>
+                <button type="button" class="custom-dd-btn">16px — Default</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="0" onclick="ddSelect('qr-margin-dd',this,updateQR)">0 — None</div>
-                  <div class="custom-dd-opt" data-value="4" onclick="ddSelect('qr-margin-dd',this,updateQR)">4px — Minimal</div>
-                  <div class="custom-dd-opt" data-value="8" onclick="ddSelect('qr-margin-dd',this,updateQR)">8px — Compact</div>
-                  <div class="custom-dd-opt" data-value="12" onclick="ddSelect('qr-margin-dd',this,updateQR)">12px — Small</div>
-                  <div class="custom-dd-opt selected" data-value="16" onclick="ddSelect('qr-margin-dd',this,updateQR)">16px — Default</div>
-                  <div class="custom-dd-opt" data-value="24" onclick="ddSelect('qr-margin-dd',this,updateQR)">24px — Relaxed</div>
-                  <div class="custom-dd-opt" data-value="32" onclick="ddSelect('qr-margin-dd',this,updateQR)">32px — Wide</div>
-                  <div class="custom-dd-opt" data-value="48" onclick="ddSelect('qr-margin-dd',this,updateQR)">48px — Max</div>
+                  <div class="custom-dd-opt" data-value="0">0 — None</div>
+                  <div class="custom-dd-opt" data-value="4">4px — Minimal</div>
+                  <div class="custom-dd-opt" data-value="8">8px — Compact</div>
+                  <div class="custom-dd-opt" data-value="12">12px — Small</div>
+                  <div class="custom-dd-opt selected" data-value="16">16px — Default</div>
+                  <div class="custom-dd-opt" data-value="24">24px — Relaxed</div>
+                  <div class="custom-dd-opt" data-value="32">32px — Wide</div>
+                  <div class="custom-dd-opt" data-value="48">48px — Max</div>
                 </div>
                 <input type="hidden" id="qr-margin" value="16">
               </div>
@@ -751,14 +281,14 @@ footer {
         <div class="dl-card">
           <div class="card-label">Download</div>
           <div class="format-row">
-            <button class="fmt-btn active" data-fmt="png"      onclick="setFormat('png','qr')">PNG</button>
-            <button class="fmt-btn"        data-fmt="svg"      onclick="setFormat('svg','qr')">SVG</button>
-            <button class="fmt-btn"        data-fmt="jpeg"     onclick="setFormat('jpeg','qr')">JPEG</button>
-            <button class="fmt-btn"        data-fmt="webp"     onclick="setFormat('webp','qr')">WebP</button>
-            <button class="fmt-btn"        data-fmt="bmp"      onclick="setFormat('bmp','qr')">BMP</button>
-            <button class="fmt-btn"        data-fmt="pdf"      onclick="setFormat('pdf','qr')">PDF</button>
+            <button class="fmt-btn active" data-fmt="png">PNG</button>
+            <button class="fmt-btn"        data-fmt="svg">SVG</button>
+            <button class="fmt-btn"        data-fmt="jpeg">JPEG</button>
+            <button class="fmt-btn"        data-fmt="webp">WebP</button>
+            <button class="fmt-btn"        data-fmt="bmp">BMP</button>
+            <button class="fmt-btn"        data-fmt="pdf">PDF</button>
           </div>
-          <button class="dl-btn" id="qr-dl-btn" onclick="downloadQR()" disabled>
+          <button class="dl-btn" id="qr-dl-btn" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
@@ -779,33 +309,32 @@ footer {
         <div class="card">
           <div class="card-label">Content &amp; Format</div>
           <div class="input-wrap" style="margin-bottom:8px;">
-            <input type="text" id="bc-data-input" placeholder="Enter barcode value…" oninput="updateBarcode()">
+            <input type="text" id="bc-data-input" placeholder="Enter barcode value…">
           </div>
           <div id="bc-err" class="err-msg">Invalid value for selected barcode format</div>
           <div class="input-wrap" style="margin-top:12px;margin-bottom:14px;">
             <textarea id="bc-title-input" class="multi-input"
-              placeholder="Title label — press Enter for a new line (optional)"
-              oninput="updateBcTitle()" maxlength="200"></textarea>
+              placeholder="Title label — press Enter for a new line (optional)" maxlength="200"></textarea>
             <span class="char-count" id="bc-char-count">0/200</span>
           </div>
           <div>
             <label class="field-label">Barcode Format</label>
             <div class="custom-dd" id="bc-format-dd">
-              <button type="button" class="custom-dd-btn" onclick="ddToggle('bc-format-dd')">Code 128 (any)</button>
+              <button type="button" class="custom-dd-btn">Code 128 (any)</button>
               <div class="custom-dd-list">
                 <div class="custom-dd-opt" style="font-size:11px;color:var(--muted);padding:6px 14px 2px;cursor:default;">1D — Retail</div>
-                <div class="custom-dd-opt" data-value="EAN13" onclick="ddSelect('bc-format-dd',this,updateBarcode)">EAN-13 (13 digits)</div>
-                <div class="custom-dd-opt" data-value="EAN8" onclick="ddSelect('bc-format-dd',this,updateBarcode)">EAN-8 (8 digits)</div>
-                <div class="custom-dd-opt" data-value="UPC" onclick="ddSelect('bc-format-dd',this,updateBarcode)">UPC-A (12 digits)</div>
-                <div class="custom-dd-opt" data-value="UPCE" onclick="ddSelect('bc-format-dd',this,updateBarcode)">UPC-E (8 digits)</div>
+                <div class="custom-dd-opt" data-value="EAN13">EAN-13 (13 digits)</div>
+                <div class="custom-dd-opt" data-value="EAN8">EAN-8 (8 digits)</div>
+                <div class="custom-dd-opt" data-value="UPC">UPC-A (12 digits)</div>
+                <div class="custom-dd-opt" data-value="UPCE">UPC-E (8 digits)</div>
                 <div class="custom-dd-opt" style="font-size:11px;color:var(--muted);padding:6px 14px 2px;cursor:default;">1D — General</div>
-                <div class="custom-dd-opt selected" data-value="CODE128" onclick="ddSelect('bc-format-dd',this,updateBarcode)">Code 128 (any)</div>
-                <div class="custom-dd-opt" data-value="CODE39" onclick="ddSelect('bc-format-dd',this,updateBarcode)">Code 39</div>
-                <div class="custom-dd-opt" data-value="CODE93" onclick="ddSelect('bc-format-dd',this,updateBarcode)">Code 93</div>
+                <div class="custom-dd-opt selected" data-value="CODE128">Code 128 (any)</div>
+                <div class="custom-dd-opt" data-value="CODE39">Code 39</div>
+                <div class="custom-dd-opt" data-value="CODE93">Code 93</div>
                 <div class="custom-dd-opt" style="font-size:11px;color:var(--muted);padding:6px 14px 2px;cursor:default;">1D — Postal / Inventory</div>
-                <div class="custom-dd-opt" data-value="ITF14" onclick="ddSelect('bc-format-dd',this,updateBarcode)">ITF-14 (14 digits)</div>
-                <div class="custom-dd-opt" data-value="MSI" onclick="ddSelect('bc-format-dd',this,updateBarcode)">MSI Plessey</div>
-                <div class="custom-dd-opt" data-value="pharmacode" onclick="ddSelect('bc-format-dd',this,updateBarcode)">Pharmacode</div>
+                <div class="custom-dd-opt" data-value="ITF14">ITF-14 (14 digits)</div>
+                <div class="custom-dd-opt" data-value="MSI">MSI Plessey</div>
+                <div class="custom-dd-opt" data-value="pharmacode">Pharmacode</div>
               </div>
               <input type="hidden" id="bc-format" value="CODE128">
             </div>
@@ -819,14 +348,14 @@ footer {
             <div>
               <label class="field-label">Font Family</label>
               <div class="custom-dd" id="bc-font-dropdown">
-                <button type="button" class="custom-dd-btn" style="font-family:'DM Sans',sans-serif" onclick="ddToggle('bc-font-dropdown')">DM Sans</button>
+                <button type="button" class="custom-dd-btn" style="font-family:'DM Sans',sans-serif">DM Sans</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="'Playfair Display', serif" data-font="'Playfair Display',serif" style="font-family:'Playfair Display',serif" onclick="selectFont('bc-font-dropdown',this)">Playfair Display</div>
-                  <div class="custom-dd-opt selected" data-value="'DM Sans', sans-serif" data-font="'DM Sans',sans-serif" style="font-family:'DM Sans',sans-serif" onclick="selectFont('bc-font-dropdown',this)">DM Sans</div>
-                  <div class="custom-dd-opt" data-value="'DM Mono', monospace" data-font="'DM Mono',monospace" style="font-family:'DM Mono',monospace" onclick="selectFont('bc-font-dropdown',this)">DM Mono</div>
-                  <div class="custom-dd-opt" data-value="Georgia, serif" data-font="Georgia,serif" style="font-family:Georgia,serif" onclick="selectFont('bc-font-dropdown',this)">Georgia</div>
-                  <div class="custom-dd-opt" data-value="'Courier New', monospace" data-font="'Courier New',monospace" style="font-family:'Courier New',monospace" onclick="selectFont('bc-font-dropdown',this)">Courier New</div>
-                  <div class="custom-dd-opt" data-value="'Times New Roman', serif" data-font="'Times New Roman',serif" style="font-family:'Times New Roman',serif" onclick="selectFont('bc-font-dropdown',this)">Times New Roman</div>
+                  <div class="custom-dd-opt" data-value="'Playfair Display', serif" data-font="'Playfair Display',serif" style="font-family:'Playfair Display',serif">Playfair Display</div>
+                  <div class="custom-dd-opt selected" data-value="'DM Sans', sans-serif" data-font="'DM Sans',sans-serif" style="font-family:'DM Sans',sans-serif">DM Sans</div>
+                  <div class="custom-dd-opt" data-value="'DM Mono', monospace" data-font="'DM Mono',monospace" style="font-family:'DM Mono',monospace">DM Mono</div>
+                  <div class="custom-dd-opt" data-value="Georgia, serif" data-font="Georgia,serif" style="font-family:Georgia,serif">Georgia</div>
+                  <div class="custom-dd-opt" data-value="'Courier New', monospace" data-font="'Courier New',monospace" style="font-family:'Courier New',monospace">Courier New</div>
+                  <div class="custom-dd-opt" data-value="'Times New Roman', serif" data-font="'Times New Roman',serif" style="font-family:'Times New Roman',serif">Times New Roman</div>
                 </div>
                 <input type="hidden" id="bc-font-family" value="'DM Sans', sans-serif">
               </div>
@@ -834,10 +363,10 @@ footer {
             <div>
               <label class="field-label">Style</label>
               <div class="style-opts">
-                <span class="style-chip" data-style="bold"      onclick="toggleStyle('bold','bc')"><b>B</b></span>
-                <span class="style-chip" data-style="italic"    onclick="toggleStyle('italic','bc')"><i>I</i></span>
-                <span class="style-chip" data-style="underline" onclick="toggleStyle('underline','bc')" style="text-decoration:underline;">U</span>
-                <span class="style-chip" data-style="smallcaps" onclick="toggleStyle('smallcaps','bc')">S<span style="font-size:.78em">C</span></span>
+                <span class="style-chip" data-style="bold"><b>B</b></span>
+                <span class="style-chip" data-style="italic"><i>I</i></span>
+                <span class="style-chip" data-style="underline" style="text-decoration:underline;">U</span>
+                <span class="style-chip" data-style="smallcaps">S<span style="font-size:.78em">C</span></span>
               </div>
             </div>
           </div>
@@ -846,18 +375,18 @@ footer {
             <div>
               <label class="field-label">Font Size</label>
               <div class="custom-dd" id="bc-font-size-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('bc-font-size-dd')">18px — Default</button>
+                <button type="button" class="custom-dd-btn">18px — Default</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="10" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">10px — Tiny</div>
-                  <div class="custom-dd-opt" data-value="12" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">12px — Small</div>
-                  <div class="custom-dd-opt" data-value="14" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">14px — Base</div>
-                  <div class="custom-dd-opt" data-value="16" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">16px — Medium</div>
-                  <div class="custom-dd-opt selected" data-value="18" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">18px — Default</div>
-                  <div class="custom-dd-opt" data-value="20" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">20px — Large</div>
-                  <div class="custom-dd-opt" data-value="24" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">24px — XL</div>
-                  <div class="custom-dd-opt" data-value="28" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">28px — 2XL</div>
-                  <div class="custom-dd-opt" data-value="32" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">32px — 3XL</div>
-                  <div class="custom-dd-opt" data-value="36" onclick="ddSelect('bc-font-size-dd',this,updateBcTitle)">36px — 4XL</div>
+                  <div class="custom-dd-opt" data-value="10">10px — Tiny</div>
+                  <div class="custom-dd-opt" data-value="12">12px — Small</div>
+                  <div class="custom-dd-opt" data-value="14">14px — Base</div>
+                  <div class="custom-dd-opt" data-value="16">16px — Medium</div>
+                  <div class="custom-dd-opt selected" data-value="18">18px — Default</div>
+                  <div class="custom-dd-opt" data-value="20">20px — Large</div>
+                  <div class="custom-dd-opt" data-value="24">24px — XL</div>
+                  <div class="custom-dd-opt" data-value="28">28px — 2XL</div>
+                  <div class="custom-dd-opt" data-value="32">32px — 3XL</div>
+                  <div class="custom-dd-opt" data-value="36">36px — 4XL</div>
                 </div>
                 <input type="hidden" id="bc-font-size" value="18">
               </div>
@@ -865,15 +394,15 @@ footer {
             <div>
               <label class="field-label">Letter Spacing</label>
               <div class="custom-dd" id="bc-letter-spacing-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('bc-letter-spacing-dd')">0px — Normal</button>
+                <button type="button" class="custom-dd-btn">0px — Normal</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="-2" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">-2px — Tight</div>
-                  <div class="custom-dd-opt" data-value="-1" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">-1px — Snug</div>
-                  <div class="custom-dd-opt selected" data-value="0" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">0px — Normal</div>
-                  <div class="custom-dd-opt" data-value="1" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">1px — Relaxed</div>
-                  <div class="custom-dd-opt" data-value="2" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">2px — Wide</div>
-                  <div class="custom-dd-opt" data-value="4" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">4px — Wider</div>
-                  <div class="custom-dd-opt" data-value="6" onclick="ddSelect('bc-letter-spacing-dd',this,updateBcTitle)">6px — Widest</div>
+                  <div class="custom-dd-opt" data-value="-2">-2px — Tight</div>
+                  <div class="custom-dd-opt" data-value="-1">-1px — Snug</div>
+                  <div class="custom-dd-opt selected" data-value="0">0px — Normal</div>
+                  <div class="custom-dd-opt" data-value="1">1px — Relaxed</div>
+                  <div class="custom-dd-opt" data-value="2">2px — Wide</div>
+                  <div class="custom-dd-opt" data-value="4">4px — Wider</div>
+                  <div class="custom-dd-opt" data-value="6">6px — Widest</div>
                 </div>
                 <input type="hidden" id="bc-letter-spacing" value="0">
               </div>
@@ -885,24 +414,20 @@ footer {
               <label class="field-label">Text Color</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="bc-text-color-swatch" style="background:#ffffff;">
-                  <input type="color" id="bc-text-color" value="#ffffff"
-                    oninput="syncColor('bc-text-color','bc-text-color-hex','bc-text-color-swatch'); updateBcTitle()">
+                  <input type="color" id="bc-text-color" value="#ffffff">
                 </div>
                 <input type="text" class="color-hex" id="bc-text-color-hex" value="#ffffff"
-                  placeholder="none"
-                  oninput="syncHex('bc-text-color-hex','bc-text-color','bc-text-color-swatch'); updateBcTitle()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
             <div>
               <label class="field-label">Card Background</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="bc-card-bg-swatch" style="background:#000000;">
-                  <input type="color" id="bc-card-bg" value="#000000"
-                    oninput="syncColor('bc-card-bg','bc-card-bg-hex','bc-card-bg-swatch'); updateBcTitle()">
+                  <input type="color" id="bc-card-bg" value="#000000">
                 </div>
                 <input type="text" class="color-hex" id="bc-card-bg-hex" value="#000000"
-                  placeholder="none"
-                  oninput="syncHex('bc-card-bg-hex','bc-card-bg','bc-card-bg-swatch'); updateBcTitle()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
           </div>
@@ -910,16 +435,16 @@ footer {
           <div>
             <label class="field-label">Text Alignment</label>
             <div class="align-btns">
-              <button class="align-btn" data-align="left" onclick="setAlign('left','bc')">
+              <button class="align-btn" data-align="left">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="0" y="4" width="11" height="2"/><rect x="0" y="8" width="14" height="2"/><rect x="0" y="12" width="9" height="2"/></svg>
               </button>
-              <button class="align-btn active" data-align="center" onclick="setAlign('center','bc')">
+              <button class="align-btn active" data-align="center">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="2.5" y="4" width="11" height="2"/><rect x="1" y="8" width="14" height="2"/><rect x="3.5" y="12" width="9" height="2"/></svg>
               </button>
-              <button class="align-btn" data-align="right" onclick="setAlign('right','bc')">
+              <button class="align-btn" data-align="right">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="5" y="4" width="11" height="2"/><rect x="2" y="8" width="14" height="2"/><rect x="7" y="12" width="9" height="2"/></svg>
               </button>
-              <button class="align-btn" data-align="justify" onclick="setAlign('justify','bc')">
+              <button class="align-btn" data-align="justify">
                 <svg width="15" height="13" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2"/><rect x="0" y="4" width="16" height="2"/><rect x="0" y="8" width="16" height="2"/><rect x="0" y="12" width="11" height="2"/></svg>
               </button>
             </div>
@@ -935,24 +460,20 @@ footer {
               <label class="field-label">Bar Color</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="bc-fg-swatch" style="background:#000000;">
-                  <input type="color" id="bc-fg" value="#000000"
-                    oninput="syncColor('bc-fg','bc-fg-hex','bc-fg-swatch'); updateBarcode()">
+                  <input type="color" id="bc-fg" value="#000000">
                 </div>
                 <input type="text" class="color-hex" id="bc-fg-hex" value="#000000"
-                  placeholder="none"
-                  oninput="syncHex('bc-fg-hex','bc-fg','bc-fg-swatch'); updateBarcode()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
             <div>
               <label class="field-label">Bar Background</label>
               <div class="color-row">
                 <div class="color-swatch-btn" id="bc-bg-swatch" style="background:#ffffff;">
-                  <input type="color" id="bc-bg" value="#ffffff"
-                    oninput="syncColor('bc-bg','bc-bg-hex','bc-bg-swatch'); updateBarcode()">
+                  <input type="color" id="bc-bg" value="#ffffff">
                 </div>
                 <input type="text" class="color-hex" id="bc-bg-hex" value="#ffffff"
-                  placeholder="none"
-                  oninput="syncHex('bc-bg-hex','bc-bg','bc-bg-swatch'); updateBarcode()" maxlength="7">
+                  placeholder="none" maxlength="7">
               </div>
             </div>
           </div>
@@ -961,12 +482,12 @@ footer {
             <div>
               <label class="field-label">Width (bar width)</label>
               <div class="custom-dd" id="bc-width-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('bc-width-dd')">2 — Default</button>
+                <button type="button" class="custom-dd-btn">2 — Default</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="1" onclick="ddSelect('bc-width-dd',this,updateBarcode)">1 — Narrow</div>
-                  <div class="custom-dd-opt selected" data-value="2" onclick="ddSelect('bc-width-dd',this,updateBarcode)">2 — Default</div>
-                  <div class="custom-dd-opt" data-value="3" onclick="ddSelect('bc-width-dd',this,updateBarcode)">3 — Wide</div>
-                  <div class="custom-dd-opt" data-value="4" onclick="ddSelect('bc-width-dd',this,updateBarcode)">4 — Wider</div>
+                  <div class="custom-dd-opt" data-value="1">1 — Narrow</div>
+                  <div class="custom-dd-opt selected" data-value="2">2 — Default</div>
+                  <div class="custom-dd-opt" data-value="3">3 — Wide</div>
+                  <div class="custom-dd-opt" data-value="4">4 — Wider</div>
                 </div>
                 <input type="hidden" id="bc-width" value="2">
               </div>
@@ -974,14 +495,14 @@ footer {
             <div>
               <label class="field-label">Height</label>
               <div class="custom-dd" id="bc-height-dd">
-                <button type="button" class="custom-dd-btn" onclick="ddToggle('bc-height-dd')">100px — Default</button>
+                <button type="button" class="custom-dd-btn">100px — Default</button>
                 <div class="custom-dd-list">
-                  <div class="custom-dd-opt" data-value="60" onclick="ddSelect('bc-height-dd',this,updateBarcode)">60px — Compact</div>
-                  <div class="custom-dd-opt" data-value="80" onclick="ddSelect('bc-height-dd',this,updateBarcode)">80px — Small</div>
-                  <div class="custom-dd-opt selected" data-value="100" onclick="ddSelect('bc-height-dd',this,updateBarcode)">100px — Default</div>
-                  <div class="custom-dd-opt" data-value="130" onclick="ddSelect('bc-height-dd',this,updateBarcode)">130px — Tall</div>
-                  <div class="custom-dd-opt" data-value="160" onclick="ddSelect('bc-height-dd',this,updateBarcode)">160px — XL</div>
-                  <div class="custom-dd-opt" data-value="200" onclick="ddSelect('bc-height-dd',this,updateBarcode)">200px — Max</div>
+                  <div class="custom-dd-opt" data-value="60">60px — Compact</div>
+                  <div class="custom-dd-opt" data-value="80">80px — Small</div>
+                  <div class="custom-dd-opt selected" data-value="100">100px — Default</div>
+                  <div class="custom-dd-opt" data-value="130">130px — Tall</div>
+                  <div class="custom-dd-opt" data-value="160">160px — XL</div>
+                  <div class="custom-dd-opt" data-value="200">200px — Max</div>
                 </div>
                 <input type="hidden" id="bc-height" value="100">
               </div>
@@ -991,8 +512,8 @@ footer {
           <div>
             <label class="field-label">Show Value Text</label>
             <div class="ec-btns">
-              <button class="ec-btn active" data-bcdisplay="true"  onclick="setBcDisplay(true)">Show</button>
-              <button class="ec-btn"        data-bcdisplay="false" onclick="setBcDisplay(false)">Hide</button>
+              <button class="ec-btn active" data-bcdisplay="true">Show</button>
+              <button class="ec-btn"        data-bcdisplay="false">Hide</button>
             </div>
           </div>
         </div>
@@ -1031,14 +552,14 @@ footer {
         <div class="dl-card">
           <div class="card-label">Download</div>
           <div class="format-row">
-            <button class="fmt-btn active" data-fmt="png"  onclick="setFormat('png','bc')">PNG</button>
-            <button class="fmt-btn"        data-fmt="svg"  onclick="setFormat('svg','bc')">SVG</button>
-            <button class="fmt-btn"        data-fmt="jpeg" onclick="setFormat('jpeg','bc')">JPEG</button>
-            <button class="fmt-btn"        data-fmt="webp" onclick="setFormat('webp','bc')">WebP</button>
-            <button class="fmt-btn"        data-fmt="bmp"  onclick="setFormat('bmp','bc')">BMP</button>
-            <button class="fmt-btn"        data-fmt="pdf"  onclick="setFormat('pdf','bc')">PDF</button>
+            <button class="fmt-btn active" data-fmt="png">PNG</button>
+            <button class="fmt-btn"        data-fmt="svg">SVG</button>
+            <button class="fmt-btn"        data-fmt="jpeg">JPEG</button>
+            <button class="fmt-btn"        data-fmt="webp">WebP</button>
+            <button class="fmt-btn"        data-fmt="bmp">BMP</button>
+            <button class="fmt-btn"        data-fmt="pdf">PDF</button>
           </div>
-          <button class="dl-btn" id="bc-dl-btn" onclick="downloadBarcode()" disabled>
+          <button class="dl-btn" id="bc-dl-btn" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
@@ -1065,685 +586,6 @@ footer {
   </div>
 </footer>
 
-<script>
-/* ══════════════════════════════════════════
-   SHARED STATE
-══════════════════════════════════════════ */
-const state = {
-  qr:  { format: 'png', align: 'center', styles: new Set(), generated: false },
-  bc:  { format: 'png', align: 'center', styles: new Set(), generated: false, displayValue: true }
-};
-let qrDebounce = null, bcDebounce = null;
-let currentTab = 'qr';
-
-const ecMap = () => ({
-  L: QRCode.CorrectLevel.L, M: QRCode.CorrectLevel.M,
-  Q: QRCode.CorrectLevel.Q, H: QRCode.CorrectLevel.H
-});
-let currentEC = 'L';
-
-/* ══ CUSTOM DROPDOWN ══ */
-const OPT_H = 38;
-const VISIBLE_ABOVE = 3;
-
-let _openDd     = null;
-let _openList   = null;
-let _origParent = null;
-let _suppressClose = false; // prevent document-click close when opening
-
-function _ddClose() {
-  if (!_openDd) return;
-  _openDd.classList.remove('open');
-  if (_openList && _origParent) {
-    _origParent.appendChild(_openList);
-    _openList.style.cssText = '';
-  }
-  _openDd = null; _openList = null; _origParent = null;
-}
-
-function ddToggle(id) {
-  const dd = document.getElementById(id);
-  if (_openDd === dd) { _ddClose(); return; }
-  _ddClose();
-
-  const list    = dd.querySelector('.custom-dd-list');
-  const btn     = dd.querySelector('.custom-dd-btn');
-  const btnRect = btn.getBoundingClientRect();
-
-  _origParent = list.parentElement;
-  _openDd     = dd;
-  _openList   = list;
-  dd.classList.add('open');
-
-  // Move to body so it escapes all stacking contexts
-  const listW = btnRect.width;
-  list.style.cssText = `display:block;visibility:hidden;position:absolute;top:-9999px;left:-9999px;width:${listW}px;`;
-  document.body.appendChild(list);
-
-  const listH = Math.min(list.scrollHeight, 280);
-  list.style.maxHeight = listH + 'px';
-
-  // Scroll so selected item has VISIBLE_ABOVE rows above it
-  const selected = list.querySelector('.custom-dd-opt.selected');
-  if (selected) {
-    const opts = Array.from(list.querySelectorAll('.custom-dd-opt'));
-    list.scrollTop = Math.max(0, (opts.indexOf(selected) - VISIBLE_ABOVE) * OPT_H);
-  }
-
-  // Position: scrollOffset + viewport coords
-  const sx = window.scrollX || window.pageXOffset;
-  const sy = window.scrollY || window.pageYOffset;
-  const spaceBelow = window.innerHeight - btnRect.bottom;
-  const topPx = (spaceBelow < listH + 8 && btnRect.top > listH + 8)
-    ? sy + btnRect.top - listH - 4
-    : sy + btnRect.bottom + 4;
-
-  list.style.cssText = `display:block;position:absolute;top:${topPx}px;left:${sx + btnRect.left}px;width:${listW}px;max-height:${listH}px;z-index:99999;overflow-y:auto;`;
-
-  // Suppress the document click handler for this same click event
-  _suppressClose = true;
-  setTimeout(() => { _suppressClose = false; }, 0);
-}
-
-function ddSelect(ddId, optEl, callback) {
-  const dd  = document.getElementById(ddId);
-  if (!dd) return;
-  const val = optEl.dataset.value;
-  if (!val) return; // clicked a group header — ignore
-  const lbl = optEl.dataset.label || optEl.textContent.trim();
-  const btn = dd.querySelector('.custom-dd-btn');
-  btn.textContent = lbl;
-  if (optEl.dataset.font) btn.style.fontFamily = optEl.dataset.font;
-  dd.querySelector('input[type="hidden"]').value = val;
-  const list = _openList || dd.querySelector('.custom-dd-list');
-  list.querySelectorAll('.custom-dd-opt').forEach(o => o.classList.toggle('selected', o === optEl));
-  _ddClose();
-  if (callback) callback();
-}
-
-// Use mousedown to close on outside interaction (fires before click, won't race with ddToggle)
-document.addEventListener('mousedown', e => {
-  if (_suppressClose) return;
-  if (_openList && !_openList.contains(e.target) && !e.target.closest('.custom-dd-btn')) {
-    _ddClose();
-  }
-});
-window.addEventListener('scroll', _ddClose);
-window.addEventListener('resize', _ddClose);
-
-function toggleFontDropdown(id) { ddToggle(id); }
-function selectFont(ddId, optEl) {
-  ddSelect(ddId, optEl, () => { if (ddId === 'qr-font-dropdown') updateTitle(); else updateBcTitle(); });
-}
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === tab + '-panel'));
-}
-
-/* ══ COLOR HELPERS ══ */
-function syncColor(colorId, hexId, swatchId) {
-  const v = document.getElementById(colorId).value;
-  document.getElementById(hexId).value = v;
-  const sw = document.getElementById(swatchId);
-  sw.style.background = v;
-  sw.style.borderStyle = 'solid';
-  sw.classList.remove('transparent-swatch');
-}
-function syncHex(hexId, colorId, swatchId) {
-  const v = document.getElementById(hexId).value.trim();
-  const sw = document.getElementById(swatchId);
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    document.getElementById(colorId).value = v;
-    sw.style.background = v;
-    sw.style.borderStyle = 'solid';
-    sw.classList.remove('transparent-swatch');
-  } else if (v === '') {
-    sw.style.background = '';
-    sw.style.borderStyle = 'dashed';
-    sw.classList.add('transparent-swatch');
-  }
-}
-
-/* ══ COLOR VALUE HELPER ══ */
-// Returns the hex value if valid, otherwise 'transparent'
-function hexVal(hexId) {
-  const v = document.getElementById(hexId).value.trim();
-  return /^#[0-9a-fA-F]{6}$/.test(v) ? v : 'transparent';
-}
-// Returns null for transparent/empty, hex string otherwise
-function hexOrNull(hexId) {
-  const v = document.getElementById(hexId).value.trim();
-  return /^#[0-9a-fA-F]{6}$/.test(v) ? v : null;
-}
-function setAlign(a, ctx) {
-  state[ctx].align = a;
-  // Only update align buttons within the right panel
-  const panel = document.getElementById(ctx === 'qr' ? 'qr-panel' : 'barcode-panel');
-  panel.querySelectorAll('.align-btn').forEach(b => b.classList.toggle('active', b.dataset.align === a));
-  ctx === 'qr' ? updateTitle() : updateBcTitle();
-}
-
-function toggleStyle(s, ctx) {
-  const st = state[ctx].styles;
-  st.has(s) ? st.delete(s) : st.add(s);
-  const panel = document.getElementById(ctx === 'qr' ? 'qr-panel' : 'barcode-panel');
-  panel.querySelector(`.style-chip[data-style="${s}"]`).classList.toggle('active', st.has(s));
-  ctx === 'qr' ? updateTitle() : updateBcTitle();
-}
-
-function setFormat(f, ctx) {
-  state[ctx].format = f;
-  const panel = document.getElementById(ctx === 'qr' ? 'qr-panel' : 'barcode-panel');
-  panel.querySelectorAll('.fmt-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === f));
-}
-
-function setEC(ec) {
-  currentEC = ec;
-  document.querySelectorAll('.ec-btn[data-ec]').forEach(b => b.classList.toggle('active', b.dataset.ec === ec));
-  updateQR();
-}
-
-function setBcDisplay(val) {
-  state.bc.displayValue = val;
-  document.querySelectorAll('.ec-btn[data-bcdisplay]').forEach(b =>
-    b.classList.toggle('active', b.dataset.bcdisplay === String(val)));
-  updateBarcode();
-}
-
-/* ══════════════════════════════════════════
-   QR CODE LOGIC
-══════════════════════════════════════════ */
-function renderSmallCaps(el, raw, size) {
-  el.innerHTML = '';
-  raw.split('\n').forEach((line, li) => {
-    for (const ch of line) {
-      if (ch >= 'a' && ch <= 'z') {
-        const span = document.createElement('span');
-        span.textContent = ch.toUpperCase();
-        span.style.fontSize = Math.round(size * 0.75) + 'px';
-        el.appendChild(span);
-      } else {
-        el.appendChild(document.createTextNode(ch));
-      }
-    }
-    if (li < raw.split('\n').length - 1) el.appendChild(document.createElement('br'));
-  });
-}
-
-function applyTitleStyles(el, raw, size, family, spacing, color, ctx) {
-  const st = state[ctx].styles;
-  const isSC = st.has('smallcaps');
-  if (isSC) renderSmallCaps(el, raw, size);
-  else el.textContent = raw;
-  el.style.fontFamily     = family;
-  el.style.fontSize       = size + 'px';
-  el.style.fontWeight     = st.has('bold')      ? '700' : '400';
-  el.style.fontStyle      = st.has('italic')    ? 'italic' : 'normal';
-  el.style.textDecoration = st.has('underline') ? 'underline' : 'none';
-  el.style.letterSpacing  = spacing + 'px';
-  el.style.color          = color;
-  el.style.textAlign      = state[ctx].align;
-  el.style.marginBottom   = raw.trim() ? '12px' : '0';
-  el.style.lineHeight     = '1.4';
-}
-
-function updateTitle() {
-  const raw     = document.getElementById('title-input').value;
-  const size    = parseInt(document.getElementById('font-size').value);
-  const family  = document.getElementById('font-family').value;
-  const spacing = document.getElementById('letter-spacing').value;
-  const color   = hexVal('text-color-hex');
-  const bgHex   = hexOrNull('text-bg-hex');
-
-  document.getElementById('char-count').textContent = raw.length + '/200';
-
-  const el = document.getElementById('qr-title-preview');
-  applyTitleStyles(el, raw, size, family, spacing, color, 'qr');
-
-  // Card background covers ENTIRE preview card (title + QR zone)
-  const card = document.getElementById('qr-preview-card');
-  card.style.background = bgHex ?? '#000000';
-}
-
-function updateQR() {
-  clearTimeout(qrDebounce);
-  qrDebounce = setTimeout(generateQR, 280);
-}
-
-function generateQR() {
-  const url  = document.getElementById('url-input').value.trim();
-  const wrap = document.getElementById('qr-canvas-wrap');
-  const old  = wrap.querySelector('.qr-wrapper');
-
-  if (!url) {
-    if (old) old.remove();
-    document.getElementById('qr-placeholder').style.display = 'flex';
-    document.getElementById('qr-dl-btn').disabled = true;
-    state.qr.generated = false;
-    return;
-  }
-
-  const fg     = hexVal('qr-fg-hex');
-  const bg     = hexVal('qr-bg-hex');
-  const margin = parseInt(document.getElementById('qr-margin').value);
-
-  if (old) old.remove();
-  document.getElementById('qr-placeholder').style.display = 'none';
-
-  const qrDiv = document.createElement('div');
-  qrDiv.className = 'qr-wrapper';
-  qrDiv.style.padding    = margin + 'px';
-  qrDiv.style.background = bg;
-  wrap.appendChild(qrDiv);
-
-  // QRCode lib needs real hex colors — use fallbacks for transparent
-  const fgColor = (fg === 'transparent') ? '#000000' : fg;
-  const bgColor = (bg === 'transparent') ? '#ffffff' : bg;
-
-  try {
-    new QRCode(qrDiv, {
-      text: url, width: 240, height: 240,
-      colorDark: fgColor, colorLight: bgColor,
-      correctLevel: ecMap()[currentEC]
-    });
-    state.qr.generated = true;
-    document.getElementById('qr-dl-btn').disabled = false;
-    const pc = document.getElementById('qr-preview-card');
-    pc.classList.remove('flash'); void pc.offsetWidth; pc.classList.add('flash');
-  } catch(e) { console.error('QR error:', e); }
-}
-
-async function downloadQR() {
-  if (!state.qr.generated) return;
-
-  const url      = document.getElementById('url-input').value.trim();
-  const rawTitle = document.getElementById('title-input').value;
-  const size     = parseInt(document.getElementById('qr-size').value);
-  const fgHex    = hexOrNull('qr-fg-hex');
-  const bgHex    = hexOrNull('qr-bg-hex');
-  const fg       = fgHex ?? '#000000';
-  const bg       = bgHex ?? '#ffffff';
-  const margin   = parseInt(document.getElementById('qr-margin').value);
-  const fontSize = parseInt(document.getElementById('font-size').value);
-  const family   = document.getElementById('font-family').value.replace(/'/g,'');
-  const spacing  = parseInt(document.getElementById('letter-spacing').value);
-  const color    = hexVal('text-color-hex');
-  const cardBg   = hexOrNull('text-bg-hex');
-  const st       = state.qr.styles;
-
-  const CARD_R = 20; // card border-radius
-  const QR_R   = 8;  // QR code area radius (matches .qr-wrapper)
-
-  const sideP = 20, qrTop = 16, qrBot = 24, titleTop = 24, titleGap = 12;
-  const titleLines  = rawTitle.trim() ? rawTitle.split('\n') : [];
-  const lineH       = Math.ceil(fontSize * 1.4);
-  const titleBlockH = titleLines.length > 0 ? titleTop + titleLines.length * lineH + titleGap : 0;
-  const totalW = sideP + size + sideP;
-  const totalH = titleBlockH + qrTop + size + qrBot;
-  const qrX    = sideP;
-  const qrY    = titleBlockH + qrTop;
-
-  const qrBitmap = await renderQRBitmap(url, size, fg, bg, margin);
-  const canvasBg = cardBg ?? bgHex ?? null;
-
-  if (state.qr.format === 'svg') {
-    const pngB64   = qrBitmap.toDataURL('image/png');
-    const bgRect   = canvasBg ? `<rect width="${totalW}" height="${totalH}" fill="${canvasBg}" rx="${CARD_R}"/>` : '';
-    // QR image clipped to rounded rect
-    const clipId   = 'qrClip';
-    const titleSVG = buildTitleSVG(titleLines, fontSize, family, spacing, color, st, state.qr.align, sideP, titleTop, totalW, lineH);
-    const defs = `<defs><clipPath id="${clipId}"><rect x="${qrX}" y="${qrY}" width="${size}" height="${size}" rx="${QR_R}"/></clipPath></defs>`;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}">${defs}${bgRect}${titleSVG}<image clip-path="url(#${clipId})" href="${pngB64}" x="${qrX}" y="${qrY}" width="${size}" height="${size}"/></svg>`;
-    triggerBlob(new Blob([svg],{type:'image/svg+xml'}), 'qr-code.svg'); return;
-  }
-
-  const canvas = buildRasterCanvas(totalW, totalH, canvasBg,
-    titleLines, fontSize, family, spacing, color, st, state.qr.align, sideP, titleTop, lineH);
-  // Draw QR with rounded corners
-  drawRounded(canvas.getContext('2d'), qrBitmap, qrX, qrY, size, size, QR_R);
-  exportCanvas(canvas, state.qr.format, 'qr-code');
-}
-
-/* ══════════════════════════════════════════
-   BARCODE LOGIC
-══════════════════════════════════════════ */
-function updateBcTitle() {
-  const raw     = document.getElementById('bc-title-input').value;
-  const size    = parseInt(document.getElementById('bc-font-size').value);
-  const family  = document.getElementById('bc-font-family').value;
-  const spacing = document.getElementById('bc-letter-spacing').value;
-  const color   = hexVal('bc-text-color-hex');
-  const bgHex   = hexOrNull('bc-card-bg-hex');
-
-  document.getElementById('bc-char-count').textContent = raw.length + '/200';
-
-  const el = document.getElementById('bc-title-preview');
-  applyTitleStyles(el, raw, size, family, spacing, color, 'bc');
-
-  const card = document.getElementById('bc-preview-card');
-  card.style.background = bgHex ?? '#000000';
-}
-
-function updateBarcode() {
-  clearTimeout(bcDebounce);
-  bcDebounce = setTimeout(generateBarcode, 280);
-}
-
-function generateBarcode() {
-  const val    = document.getElementById('bc-data-input').value.trim();
-  const format = document.getElementById('bc-format').value;
-  const fgHex  = hexOrNull('bc-fg-hex');
-  const bgHex  = hexOrNull('bc-bg-hex');
-  const fg     = fgHex ?? '#000000';
-  const bg     = bgHex ?? 'transparent';
-  const width  = parseInt(document.getElementById('bc-width').value);
-  const height = parseInt(document.getElementById('bc-height').value);
-  const showVal= state.bc.displayValue;
-  const svg    = document.getElementById('bc-svg');
-  const ph     = document.getElementById('bc-placeholder');
-  const errEl  = document.getElementById('bc-err');
-
-  if (!val) {
-    svg.style.display = 'none'; ph.style.display = 'flex';
-    document.getElementById('bc-dl-btn').disabled = true;
-    state.bc.generated = false; errEl.classList.remove('show'); return;
-  }
-
-  try {
-    JsBarcode(svg, val, {
-      format, lineColor: fg, background: bg,
-      width, height, displayValue: showVal,
-      font: 'DM Mono', fontSize: 14,
-      margin: 10
-    });
-    svg.style.display = 'block'; ph.style.display = 'none';
-    state.bc.generated = true;
-    document.getElementById('bc-dl-btn').disabled = false;
-    errEl.classList.remove('show');
-    // Pop-in animation — same feel as QR fadeUp
-    svg.classList.remove('bc-pop'); void svg.offsetWidth; svg.classList.add('bc-pop');
-    const pc = document.getElementById('bc-preview-card');
-    pc.classList.remove('flash'); void pc.offsetWidth; pc.classList.add('flash');
-  } catch(e) {
-    svg.style.display = 'none'; ph.style.display = 'flex';
-    state.bc.generated = false;
-    document.getElementById('bc-dl-btn').disabled = true;
-    errEl.classList.add('show');
-  }
-}
-
-async function downloadBarcode() {
-  if (!state.bc.generated) return;
-
-  const rawTitle = document.getElementById('bc-title-input').value;
-  const fontSize = parseInt(document.getElementById('bc-font-size').value);
-  const family   = document.getElementById('bc-font-family').value.replace(/'/g,'');
-  const spacing  = parseInt(document.getElementById('bc-letter-spacing').value);
-  const color    = hexVal('bc-text-color-hex');
-  const cardBg   = hexOrNull('bc-card-bg-hex');
-  const bgHex    = hexOrNull('bc-bg-hex');
-  const st       = state.bc.styles;
-  const bcSvg    = document.getElementById('bc-svg');
-
-  const CARD_R = 20; // card border-radius
-  const BC_R   = 8;  // barcode image corner radius
-
-  // Actual rendered pixel dimensions
-  const rect = bcSvg.getBoundingClientRect();
-  const svgW = Math.round(rect.width)  || 300;
-  const svgH = Math.round(rect.height) || 120;
-
-  // Layout mirrors preview CSS padding
-  const sideP = 20, bcTop = 16, bcBot = 24, titleTop = 24, titleGap = 12;
-  const titleLines  = rawTitle.trim() ? rawTitle.split('\n') : [];
-  const lineH       = Math.ceil(fontSize * 1.4);
-  const titleBlockH = titleLines.length > 0 ? titleTop + titleLines.length * lineH + titleGap : 0;
-  const totalW = sideP + svgW + sideP;
-  const totalH = titleBlockH + bcTop + svgH + bcBot;
-  const bcX    = sideP;
-  const bcY    = titleBlockH + bcTop;
-  const canvasBg = cardBg ?? bgHex ?? null;
-
-  // Clean clone: strip JsBarcode's background rect so WE control the bg
-  const cleanSvgStr = (() => {
-    const clone = bcSvg.cloneNode(true);
-    clone.setAttribute('width', svgW);
-    clone.setAttribute('height', svgH);
-    Array.from(clone.children).forEach(el => {
-      if (el.tagName === 'rect' && (el.getAttribute('width') === '100%' || parseFloat(el.getAttribute('width')) >= svgW * 0.9))
-        el.remove();
-    });
-    return new XMLSerializer().serializeToString(clone);
-  })();
-
-  if (state.bc.format === 'svg') {
-    const b64    = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(cleanSvgStr)));
-    const bgRect = canvasBg ? `<rect width="${totalW}" height="${totalH}" fill="${canvasBg}" rx="${CARD_R}"/>` : '';
-    const clipId = 'bcClip';
-    const defs   = `<defs><clipPath id="${clipId}"><rect x="${bcX}" y="${bcY}" width="${svgW}" height="${svgH}" rx="${BC_R}"/></clipPath></defs>`;
-    const titleSVG = buildTitleSVG(titleLines, fontSize, family, spacing, color, st, state.bc.align, sideP, titleTop, totalW, lineH);
-    const out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${totalW}" height="${totalH}">${defs}${bgRect}${titleSVG}<image clip-path="url(#${clipId})" href="${b64}" x="${bcX}" y="${bcY}" width="${svgW}" height="${svgH}"/></svg>`;
-    triggerBlob(new Blob([out], {type:'image/svg+xml'}), 'barcode.svg');
-    return;
-  }
-
-  // Raster: draw barcode with rounded corners
-  const bcBitmap = await svgToCanvas(bcSvg, svgW, svgH);
-  const canvas   = buildRasterCanvas(totalW, totalH, canvasBg,
-    titleLines, fontSize, family, spacing, color, st, state.bc.align, sideP, titleTop, lineH);
-  drawRounded(canvas.getContext('2d'), bcBitmap, bcX, bcY, svgW, svgH, BC_R);
-  exportCanvas(canvas, state.bc.format, 'barcode');
-}
-
-/* ══════════════════════════════════════════
-   SHARED RENDER UTILITIES
-══════════════════════════════════════════ */
-function buildTitleSVG(lines, fontSize, family, spacing, color, st, align, sideP, titleTop, totalW, lineH) {
-  if (!lines.length) return '';
-  const anchor = align === 'center' ? 'middle' : align === 'right' ? 'end' : 'start';
-  const xPos   = align === 'center' ? totalW/2 : align === 'right' ? totalW-sideP : sideP;
-  const isBold = st.has('bold'), isItal = st.has('italic'), isUL = st.has('underline'), isSC = st.has('smallcaps');
-  let out = '';
-  lines.forEach((line, i) => {
-    const y = titleTop + fontSize + i * lineH;
-    let content = '';
-    if (isSC) {
-      for (const ch of line) {
-        const lo = ch >= 'a' && ch <= 'z';
-        const fs = lo ? Math.round(fontSize*.75) : fontSize;
-        content += `<tspan font-size="${fs}">${lo ? ch.toUpperCase() : ch.replace(/&/g,'&amp;')}</tspan>`;
-      }
-    } else {
-      content = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-    out += `<text x="${xPos}" y="${y}" font-family="${family}" font-size="${fontSize}" font-weight="${isBold?'700':'400'}" font-style="${isItal?'italic':'normal'}" text-decoration="${isUL?'underline':'none'}" letter-spacing="${spacing}" fill="${color}" text-anchor="${anchor}">${content}</text>`;
-  });
-  return out;
-}
-
-/* ── Canvas rounded-rect helpers ── */
-function canvasRoundRect(ctx, x, y, w, h, r) {
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.arcTo(x + w, y,     x + w, y + r,     r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h);
-  ctx.arcTo(x,     y + h, x,     y + h - r, r);
-  ctx.lineTo(x, y + r);
-  ctx.arcTo(x,     y,     x + r, y,         r);
-  ctx.closePath();
-}
-
-// Draw source image/canvas clipped to a rounded rect
-function drawRounded(ctx, source, x, y, w, h, r) {
-  ctx.save();
-  canvasRoundRect(ctx, x, y, w, h, r);
-  ctx.clip();
-  ctx.drawImage(source, x, y, w, h);
-  ctx.restore();
-}
-
-function buildRasterCanvas(totalW, totalH, bgColor, titleLines, fontSize, family, spacing, color, st, align, sideP, titleTop, lineH) {
-  const CARD_R = 20; // card corner radius, matches CSS border-radius: 20px
-  const canvas = document.createElement('canvas');
-  canvas.width = totalW; canvas.height = totalH;
-  const ctx = canvas.getContext('2d');
-
-  // Fill card background with rounded corners
-  if (bgColor) {
-    ctx.fillStyle = bgColor;
-    canvasRoundRect(ctx, 0, 0, totalW, totalH, CARD_R);
-    ctx.fill();
-  }
-
-  if (!titleLines.length) return canvas;
-
-  const isBold = st.has('bold'), isItal = st.has('italic'), isUL = st.has('underline'), isSC = st.has('smallcaps');
-  const weight = isBold ? '700' : '400';
-  const style  = isItal ? 'italic' : 'normal';
-  ctx.fillStyle = color; ctx.textBaseline = 'top';
-
-  titleLines.forEach((line, i) => {
-    const y = titleTop + i * lineH;
-    if (isSC) {
-      let totalLW = 0;
-      for (const ch of line) {
-        const lo = ch >= 'a' && ch <= 'z';
-        const fs = lo ? Math.round(fontSize*.75) : fontSize;
-        ctx.font = `${style} ${weight} ${fs}px ${family}`;
-        totalLW += ctx.measureText(lo ? ch.toUpperCase() : ch).width + spacing;
-      }
-      let drawX = align === 'center' ? (totalW - totalLW)/2 : align === 'right' ? totalW - sideP - totalLW : sideP;
-      for (const ch of line) {
-        const lo = ch >= 'a' && ch <= 'z';
-        const fs = lo ? Math.round(fontSize*.75) : fontSize;
-        ctx.font = `${style} ${weight} ${fs}px ${family}`;
-        const disp = lo ? ch.toUpperCase() : ch;
-        ctx.fillText(disp, drawX, y + (fontSize - fs));
-        drawX += ctx.measureText(disp).width + spacing;
-      }
-    } else {
-      ctx.font      = `${style} ${weight} ${fontSize}px ${family}`;
-      ctx.textAlign = align === 'center' ? 'center' : align === 'right' ? 'right' : 'left';
-      const xPos    = align === 'center' ? totalW/2 : align === 'right' ? totalW-sideP : sideP;
-      ctx.fillText(line, xPos, y);
-      if (isUL) {
-        const mw = ctx.measureText(line).width;
-        let lx = xPos;
-        if (align === 'center') lx -= mw/2;
-        else if (align === 'right') lx -= mw;
-        ctx.fillRect(lx, y + fontSize + 2, mw, 1.5);
-      }
-    }
-  });
-  return canvas;
-}
-
-function renderQRBitmap(url, totalSize, fg, bg, margin) {
-  // QRCode lib renders at innerSize; we add margin padding around it
-  const innerSize = totalSize - margin * 2;
-  const fgColor   = fg === 'transparent' ? '#000000' : fg;
-  const bgColor   = bg === 'transparent' ? '#ffffff' : bg;
-  const bgFill    = bg === 'transparent' ? null : bg;
-  return new Promise(resolve => {
-    const host = document.createElement('div');
-    host.style.cssText = 'position:fixed;left:-99999px;top:-99999px;visibility:hidden;';
-    document.body.appendChild(host);
-    new QRCode(host, {
-      text: url, width: innerSize, height: innerSize,
-      colorDark: fgColor, colorLight: bgColor,
-      correctLevel: ecMap()[currentEC]
-    });
-    let tries = 0;
-    const poll = setInterval(() => {
-      const cv = host.querySelector('canvas'), img = host.querySelector('img');
-      if (++tries > 40 || cv || img) {
-        clearInterval(poll);
-        const out  = document.createElement('canvas');
-        out.width  = totalSize; out.height = totalSize;
-        const octx = out.getContext('2d');
-        // Fill entire canvas with bg (quiet zone color)
-        if (bgFill) { octx.fillStyle = bgFill; octx.fillRect(0, 0, totalSize, totalSize); }
-        const drawQR = (source) => {
-          octx.drawImage(source, margin, margin, innerSize, innerSize);
-          document.body.removeChild(host);
-          resolve(out);
-        };
-        if (cv) { drawQR(cv); }
-        else if (img) { img.complete ? drawQR(img) : (img.onload = () => drawQR(img)); }
-        else { document.body.removeChild(host); resolve(out); }
-      }
-    }, 50);
-  });
-}
-
-function svgToCanvas(svgEl, w, h) {
-  return new Promise((resolve, reject) => {
-    const clone = svgEl.cloneNode(true);
-    clone.setAttribute('width', w);
-    clone.setAttribute('height', h);
-    // Strip background rect that JsBarcode inserts (causes white fill)
-    const bgRect = clone.querySelector('rect[width="100%"]');
-    if (bgRect) bgRect.remove();
-    // Use data URI — blob URLs can taint the canvas and break toBlob/toDataURL
-    const xml     = new XMLSerializer().serializeToString(clone);
-    const dataURI = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
-    const img     = new Image(w, h);
-    img.onload = () => {
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(c);
-    };
-    img.onerror = () => reject(new Error('SVG render failed'));
-    img.src = dataURI;
-  });
-}
-
-function exportCanvas(canvas, format, basename) {
-  if (format === 'pdf') {
-    try {
-      const jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-      if (!jsPDFCtor) { alert('PDF library not loaded. Try refreshing.'); return; }
-      const mmW = canvas.width  * 0.2646;
-      const mmH = canvas.height * 0.2646;
-      const pdf = new jsPDFCtor({ orientation: mmW >= mmH ? 'l' : 'p', unit: 'mm', format: [mmW, mmH] });
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, mmW, mmH);
-      pdf.save(`${basename}.pdf`);
-    } catch(e) { alert('PDF export failed: ' + e.message); }
-    return;
-  }
-  // Use toDataURL (synchronous, no cross-origin issue) → trigger download
-  const mimeMap = {png:'image/png', jpeg:'image/jpeg', webp:'image/webp', bmp:'image/bmp'};
-  const extMap  = {png:'png', jpeg:'jpg', webp:'webp', bmp:'bmp'};
-  const mime    = mimeMap[format] || 'image/png';
-  const ext     = extMap[format]  || 'png';
-  const qual    = format === 'jpeg' ? 0.92 : undefined;
-  const dataURL = canvas.toDataURL(mime, qual);
-  const a = document.createElement('a');
-  a.href = dataURL;
-  a.download = `${basename}.${ext}`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
-function triggerBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a   = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 20000);
-}
-
-// Init
-updateTitle();
-updateBcTitle();
-</script>
+<script type="module" src="src/javascript/main.js"></script>
 </body>
 </html>

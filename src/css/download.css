@@ -1,0 +1,38 @@
+/*
+ * download.css
+ *
+ * Styles for the download panel: card container, format selection grid,
+ * individual format toggle buttons, and the primary download action button.
+ */
+
+.dl-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px;
+  animation: fadeUp 0.4s ease 0.15s both;
+}
+.format-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 7px; margin-bottom: 14px;
+}
+.fmt-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; height: var(--ctrl-h); padding: 0 4px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: 1px; color: var(--muted); cursor: pointer;
+  transition: all 0.15s; text-align: center; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
+}
+.fmt-btn:hover { border-color: var(--accent2); color: var(--accent); }
+.fmt-btn.active { background: rgba(232,213,163,0.1); border-color: var(--accent2); color: var(--accent); font-weight: 500; }
+
+.dl-btn {
+  width: 100%; background: var(--accent); color: #0d0d0f;
+  border: none; border-radius: 10px; padding: 13px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; letter-spacing: 0.3px; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.dl-btn:hover:not(:disabled) { background: #f0e0b8; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,213,163,0.2); }
+.dl-btn:active:not(:disabled) { transform: translateY(0); }
+.dl-btn:disabled { opacity: 0.4; cursor: not-allowed; }

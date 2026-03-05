@@ -1,0 +1,37 @@
+/*
+ * footer.css
+ *
+ * Styles for the site footer: border, inner container, logo, copyright,
+ * navigation links, and the fine-print disclaimer note.
+ */
+
+footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding: 40px 16px 48px;
+}
+.footer-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700; color: var(--accent);
+  letter-spacing: -0.3px; margin-bottom: 4px;
+}
+.footer-copy {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--muted); letter-spacing: 0.5px;
+}
+.footer-links {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
+}
+.footer-sep { color: var(--border); }
+.footer-note {
+  font-size: 11px; color: var(--border); font-family: 'DM Sans', sans-serif;
+  max-width: 480px; line-height: 1.6; margin-top: 6px;
+}

@@ -1,0 +1,17 @@
+/*
+ * global-styles.css
+ *
+ * Entry point for all application styles.
+ * Each @import resolves to a focused, single-concern stylesheet.
+ * Import order matters: base tokens must precede components that consume them.
+ */
+
+@import url('./base.css');
+@import url('./header.css');
+@import url('./tabs.css');
+@import url('./layout.css');
+@import url('./form-controls.css');
+@import url('./preview.css');
+@import url('./download.css');
+@import url('./animations.css');
+@import url('./footer.css');
