@@ -24,15 +24,15 @@ The application is a purely static website. `server.py` is a lightweight develop
 
 ```mermaid
 flowchart TD
-    Developer -->|"python server.py"| Server["Local Python Server\n(server.py :8000)"]
+    Developer -->|"python server.py"| Server["Local Python Server<br/>(server.py :8000)"]
     Server -->|"serves static files"| Browser
 
-    Browser --> HTML["index.html\n(markup shell)"]
-    Browser --> CSS["src/css/\n(stylesheets)"]
-    Browser --> JS["src/javascript/\n(ES modules)"]
+    Browser --> HTML["index.html<br/>(markup shell)"]
+    Browser --> CSS["src/css/<br/>(stylesheets)"]
+    Browser --> JS["src/javascript/<br/>(ES modules)"]
 
-    JS --> Features["src/features/\n(qrcode · barcode)"]
-    JS --> Utilities["src/javascript/utilities/\n(shared helpers)"]
+    JS --> Features["src/features/<br/>(qrcode · barcode)"]
+    JS --> Utilities["src/javascript/utilities/<br/>(shared helpers)"]
 ```
 
 | Layer | Description |
@@ -51,7 +51,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    main["main.js\n(entry point)"]
+    main["main.js<br/>(entry point)"]
 
     main --> appState["application-state.js"]
     main --> uiUtils["user-interface-utilities.js"]
@@ -113,7 +113,7 @@ All styles are imported through a single entry point. Import order is significan
 
 ```mermaid
 flowchart TD
-    HTML["index.html\n(link rel=stylesheet)"] --> Global["global-styles.css\n(@import aggregator)"]
+    HTML["index.html<br/>(link rel=stylesheet)"] --> Global["global-styles.css<br/>(@import aggregator)"]
     Global --> base["base.css"]
     Global --> header["header.css"]
     Global --> tabs["tabs.css"]
