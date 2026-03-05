@@ -204,7 +204,7 @@ textarea::placeholder { color: var(--muted); }
 /* ── STYLE CHIPS — compact, no-wrap, same height as controls ── */
 .style-opts {
   display: flex; gap: 5px; flex-wrap: nowrap;
-  height: var(--ctrl-h);
+  height: var(--ctrl-h); /* force same height as select/input neighbours */
   align-items: stretch;
 }
 .style-chip {
@@ -239,6 +239,7 @@ textarea::placeholder { color: var(--muted); }
   border-radius: 10px; z-index: 99999;
   box-shadow: 0 8px 32px rgba(0,0,0,0.7);
   max-height: 280px; overflow-y: auto;
+  /* position/size set by JS after teleporting to body */
 }
 .custom-dd.open .custom-dd-list { display: block; }
 .custom-dd-opt {
