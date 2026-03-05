@@ -19,7 +19,7 @@ def open_browser(server_url: str) -> None:
     browser_controller = webbrowser.get()
     browser_controller.open(server_url, new=1, autoraise=True)
 
-def main(directory: str = os.getcwd(), port: int = 8000) -> None:
+def main(directory: str = os.getcwd(), port: int = 3000) -> None:
 
     # Set server URL and handler
     server_url = f"http://localhost:{port}"

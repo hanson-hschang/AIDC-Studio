@@ -1,12 +1,12 @@
 # AIDC Studio
 
-A fast, free, and open-source studio for creating, styling, and exporting design-first **Automatic Identification and Data Capture (AIDC)** assets — currently supporting **Quick Response Codes** and **Barcodes**.
+A fast, free, and open-source studio for creating, styling, and exporting design-first **Automatic Identification and Data Capture (AIDC)** assets — currently supporting **QR Codes** and **Barcodes**.
 
 ---
 
 ## Features
 
-- **Quick Response Code Generator** — enter any URL, configure error-correction level, colours, quiet-zone margin, and output size
+- **QR Code Generator** — enter any URL, configure error-correction level, colours, quiet-zone margin, and output size
 - **Barcode Generator** — supports Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, ITF-14, MSI Plessey, and Pharmacode formats
 - **Typography Controls** — per-feature title labels with font family, size, letter-spacing, weight, italic, underline, and small-caps
 - **Colour Picker** — hex input and native colour picker with transparent-background support
@@ -26,12 +26,6 @@ A fast, free, and open-source studio for creating, styling, and exporting design
 | Barcode rendering | [JsBarcode](https://github.com/lindell/JsBarcode) (CDN) |
 | PDF export | [jsPDF](https://github.com/parallax/jsPDF) (CDN) |
 | Fonts | Google Fonts — Playfair Display, DM Sans, DM Mono |
-
----
-
-## Getting Started
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, including how to start a local server.
 
 ---
 
