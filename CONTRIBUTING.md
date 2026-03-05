@@ -98,6 +98,20 @@ To keep the codebase clean and maintainable, please keep these "golden rules" in
 * **Comment Wisely:** Explain the *why* behind complex logic, not just the *what*.
 * **Format:** Maintain consistent indentation (2 or 4 spaces as per the existing file style).
 
+### Naming Conventions
+
+All names must use **full words** — abbreviations and acronyms are forbidden unless the term is universally well-known to all engineers (e.g. `qrcode`).
+
+| Context | Convention | Correct example | Incorrect example |
+|---|---|---|---|
+| File names | kebab-case | `barcode-service.js` | `bc-svc.js` |
+| Folder names | kebab-case | `form-controls/` | `frm-ctrl/` |
+| JavaScript variables | camelCase, full words | `applicationState` | `appSt` |
+| JavaScript functions | camelCase, full words | `downloadQuickResponseCode()` | `dlQR()` |
+| CSS classes | kebab-case | `.preview-card` | `.pvw-crd` |
+
+> **Note:** `qrcode` is treated as a single well-known compound word and is used as-is in file and folder names.
+
 ### 💡 Pro-Tip: The "Hard Refresh"
 
 Browsers love to cache files, which can hide your brilliant changes. 
@@ -133,6 +147,8 @@ Before you hit that "Submit" button, double-check the following:
 * [ ] Documentation has been updated (if necessary).
 * [ ] Commit messages follow the project style.
 * [ ] Your branch is up-to-date with the latest `main`.
+* [ ] New files and identifiers follow the [Naming Conventions](#naming-conventions) above.
+* [ ] You have read the [Architecture Overview](ARCHITECTURE.md) to understand how the codebase is structured.
 
 ---
 
