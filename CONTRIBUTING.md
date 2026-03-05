@@ -34,7 +34,7 @@ python server.py
 **Option B — Python standard library (no extra files)**
 
 ```bash
-python3 -m http.server 8080
+python3 -m http.server 3000
 ```
 
 **Option C — Node.js `serve` package**
@@ -51,8 +51,7 @@ Point your web server at the repository root. The entry point is `index.html`.
 
 Open your browser and navigate to the URL printed by your chosen server option — for example:
 
-> **[http://localhost:8000](http://localhost:8000)** (Options A and D)  
-> **[http://localhost:8080](http://localhost:8080)** (Option B)
+> **[http://localhost:3000](http://localhost:3000)**
 
 ---
 

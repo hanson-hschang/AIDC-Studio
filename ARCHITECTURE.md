@@ -24,7 +24,7 @@ The application is a purely static website. `server.py` is a lightweight develop
 
 ```mermaid
 flowchart TD
-    Developer -->|"python server.py"| Server["Local Python Server<br/>(server.py :8000)"]
+    Developer -->|"python server.py"| Server["Local Python Server<br/>(server.py :3000)"]
     Server -->|"serves static files"| Browser
 
     Browser --> HTML["index.html<br/>(markup shell)"]
@@ -138,7 +138,7 @@ sequenceDiagram
     participant Browser
 
     Dev->>Server: python server.py
-    Server-->>Dev: Serving on http://localhost:8000
+    Server-->>Dev: Serving on http://localhost:3000
 
     Browser->>Server: GET /index.html
     Server-->>Browser: index.html
