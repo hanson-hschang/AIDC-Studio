@@ -49,8 +49,9 @@ export function renderSmallCapsText(element, rawText, fontSize) {
  * @param {string}      textColor     - CSS color value.
  * @param {Set<string>} styles        - Active style names ('bold', 'italic', 'underline', 'smallcaps').
  * @param {string}      align         - CSS text-align value.
+ * @param {number}      [textMargin=12] - Gap in pixels between the text and whatever follows it.
  */
-export function applyTitleTextStyles(element, rawText, fontSize, fontFamily, letterSpacing, textColor, styles, align) {
+export function applyTitleTextStyles(element, rawText, fontSize, fontFamily, letterSpacing, textColor, styles, align, textMargin = 12) {
   const isSmallCaps = styles.has('smallcaps');
   if (isSmallCaps) {
     renderSmallCapsText(element, rawText, fontSize);
@@ -65,7 +66,7 @@ export function applyTitleTextStyles(element, rawText, fontSize, fontFamily, let
   element.style.letterSpacing  = letterSpacing + 'px';
   element.style.color          = textColor;
   element.style.textAlign      = align;
-  element.style.marginBottom   = rawText.trim() ? '12px' : '0';
+  element.style.marginBottom   = rawText.trim() ? textMargin + 'px' : '0';
   element.style.lineHeight     = '1.4';
 }
 

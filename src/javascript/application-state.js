@@ -10,7 +10,8 @@ export const applicationState = {
     format: 'png',
     align: 'center',
     styles: new Set(),
-    generated: false
+    generated: false,
+    logoDataUrl: null
   },
   barcode: {
     format: 'png',

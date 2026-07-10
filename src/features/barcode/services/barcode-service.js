@@ -19,6 +19,27 @@ import {
   triggerBlobDownload
 } from '../../../javascript/utilities/export-utilities.js';
 
+/**
+ * Sizes the barcode preview card to exactly (barcode SVG width + 2 * cardMargin).
+ * Without this, the card stretches to fill its fixed-width column and the
+ * flex-centered code area silently absorbs any padding change as extra
+ * centering slack, so the left/right gap stops tracking the Card Margin
+ * setting (top/bottom are unaffected since they aren't flex-centered).
+ */
+function syncBarcodePreviewCardWidth() {
+  const card = document.getElementById('bc-preview-card');
+  const svgElement = document.getElementById('bc-svg');
+  if (!applicationState.barcode.generated || svgElement.style.display === 'none') {
+    card.style.width = '';
+    return;
+  }
+  const cardMargin = parseInt(document.getElementById('bc-card-margin').value);
+  const svgWidth = svgElement.getBoundingClientRect().width;
+  if (svgWidth > 0) {
+    card.style.width = Math.round(svgWidth + cardMargin * 2) + 'px';
+  }
+}
+
 /* ─────────────────────────────────────────
    LIVE PREVIEW — TITLE
 ───────────────────────────────────────── */
@@ -34,6 +55,8 @@ export function updateBarcodeTitle() {
   const letterSpacing = document.getElementById('bc-letter-spacing').value;
   const textColor     = getHexColorValue('bc-text-color-hex');
   const backgroundHex = getHexColorOrNull('bc-card-bg-hex');
+  const textMargin    = parseInt(document.getElementById('bc-text-margin').value);
+  const cardMargin    = parseInt(document.getElementById('bc-card-margin').value);
 
   document.getElementById('bc-char-count').textContent = rawText.length + '/200';
 
@@ -41,10 +64,18 @@ export function updateBarcodeTitle() {
     document.getElementById('bc-title-preview'),
     rawText, fontSize, fontFamily, letterSpacing, textColor,
     applicationState.barcode.styles,
-    applicationState.barcode.align
+    applicationState.barcode.align,
+    textMargin
   );
 
   document.getElementById('bc-preview-card').style.background = backgroundHex ?? '#000000';
+
+  const titleArea = document.getElementById('bc-title-area-box');
+  const codeArea  = document.getElementById('bc-code-area-box');
+  titleArea.style.padding = `${cardMargin}px ${cardMargin}px 0`;
+  codeArea.style.padding  = `0 ${cardMargin}px ${cardMargin}px`;
+
+  syncBarcodePreviewCardWidth();
 }
 
 /* ─────────────────────────────────────────
@@ -74,6 +105,7 @@ export function generateBarcode() {
   const backgroundColor    = backgroundHex ?? 'transparent';
   const barWidth           = parseInt(document.getElementById('bc-width').value);
   const barHeight          = parseInt(document.getElementById('bc-height').value);
+  const paddingMargin      = parseInt(document.getElementById('bc-padding').value);
   const showDisplayValue   = applicationState.barcode.displayValue;
   const svgElement         = document.getElementById('bc-svg');
   const placeholderElement = document.getElementById('bc-placeholder');
@@ -85,6 +117,7 @@ export function generateBarcode() {
     document.getElementById('bc-dl-btn').disabled = true;
     applicationState.barcode.generated = false;
     errorMessageElement.classList.remove('show');
+    document.getElementById('bc-preview-card').style.width = '';
     return;
   }
 
@@ -98,7 +131,7 @@ export function generateBarcode() {
       displayValue: showDisplayValue,
       font:         'DM Mono',
       fontSize:     14,
-      margin:       10
+      margin:       paddingMargin
     });
     svgElement.style.display         = 'block';
     placeholderElement.style.display = 'none';
@@ -112,12 +145,14 @@ export function generateBarcode() {
     previewCard.classList.remove('flash');
     void previewCard.offsetWidth;
     previewCard.classList.add('flash');
+    syncBarcodePreviewCardWidth();
   } catch (error) {
     svgElement.style.display         = 'none';
     placeholderElement.style.display = 'flex';
     applicationState.barcode.generated = false;
     document.getElementById('bc-dl-btn').disabled = true;
     errorMessageElement.classList.add('show');
+    document.getElementById('bc-preview-card').style.width = '';
   }
 }
 
@@ -140,6 +175,8 @@ export async function downloadBarcode() {
   const cardBackground  = getHexColorOrNull('bc-card-bg-hex');
   const backgroundHex   = getHexColorOrNull('bc-bg-hex');
   const styles          = applicationState.barcode.styles;
+  const cardMargin      = parseInt(document.getElementById('bc-card-margin').value);
+  const textMargin      = parseInt(document.getElementById('bc-text-margin').value);
   const barcodeSvgElement = document.getElementById('bc-svg');
 
   const CARD_BORDER_RADIUS    = 20;
@@ -149,22 +186,25 @@ export async function downloadBarcode() {
   const svgWidth     = Math.round(boundingRect.width)  || 300;
   const svgHeight    = Math.round(boundingRect.height) || 120;
 
-  const sidePadding            = 20;
-  const barcodeTopPadding      = 16;
-  const barcodeBottomPadding   = 24;
-  const titleTopPadding        = 24;
-  const titleBottomGap         = 12;
+  // "Card margin" governs the outer padding of the whole card (top/sides/bottom).
+  // "Text margin" governs the gap between the title text and the barcode below it.
+  // Both are applied identically here and in the live preview (see
+  // updateBarcodeTitle / preview.css) so the download always matches what's on screen.
+  const sidePadding          = cardMargin;
+  const barcodeBottomPadding = cardMargin;
+  const titleTopPadding      = cardMargin;
+  const titleBottomGap       = textMargin;
 
   const titleLines       = rawTitle.trim() ? rawTitle.split('\n') : [];
   const lineHeight       = Math.ceil(fontSize * 1.4);
   const titleBlockHeight = titleLines.length > 0
     ? titleTopPadding + titleLines.length * lineHeight + titleBottomGap
-    : 0;
+    : titleTopPadding;
 
   const totalWidth  = sidePadding + svgWidth + sidePadding;
-  const totalHeight = titleBlockHeight + barcodeTopPadding + svgHeight + barcodeBottomPadding;
+  const totalHeight = titleBlockHeight + svgHeight + barcodeBottomPadding;
   const barcodeX    = sidePadding;
-  const barcodeY    = titleBlockHeight + barcodeTopPadding;
+  const barcodeY    = titleBlockHeight;
 
   const canvasBackground = cardBackground ?? backgroundHex ?? null;
 

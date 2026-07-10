@@ -9,6 +9,8 @@
  * so no `DOMContentLoaded` wrapper is required.
  */
 
+import { applicationState } from './application-state.js';
+
 import {
   initializeDropdownDelegation,
   registerDropdownOptionCallback,
@@ -47,6 +49,12 @@ registerDropdownOptionCallback('qr-font-size-dd',       updateQuickResponseCodeT
 registerDropdownOptionCallback('qr-letter-spacing-dd',  updateQuickResponseCodeTitle);
 registerDropdownOptionCallback('qr-size-dd',            scheduleQuickResponseCodeUpdate);
 registerDropdownOptionCallback('qr-margin-dd',          scheduleQuickResponseCodeUpdate);
+registerDropdownOptionCallback('qr-text-margin-dd',     updateQuickResponseCodeTitle);
+registerDropdownOptionCallback('qr-card-margin-dd',     updateQuickResponseCodeTitle);
+registerDropdownOptionCallback('qr-body-shape-dd',      scheduleQuickResponseCodeUpdate);
+registerDropdownOptionCallback('qr-eye-frame-shape-dd', scheduleQuickResponseCodeUpdate);
+registerDropdownOptionCallback('qr-eye-ball-shape-dd',  scheduleQuickResponseCodeUpdate);
+registerDropdownOptionCallback('qr-logo-size-dd',       scheduleQuickResponseCodeUpdate);
 
 registerDropdownOptionCallback('bc-font-dropdown',      updateBarcodeTitle);
 registerDropdownOptionCallback('bc-font-size-dd',       updateBarcodeTitle);
@@ -54,6 +62,9 @@ registerDropdownOptionCallback('bc-letter-spacing-dd',  updateBarcodeTitle);
 registerDropdownOptionCallback('bc-format-dd',          scheduleBarcodeUpdate);
 registerDropdownOptionCallback('bc-width-dd',           scheduleBarcodeUpdate);
 registerDropdownOptionCallback('bc-height-dd',          scheduleBarcodeUpdate);
+registerDropdownOptionCallback('bc-padding-dd',         scheduleBarcodeUpdate);
+registerDropdownOptionCallback('bc-text-margin-dd',     updateBarcodeTitle);
+registerDropdownOptionCallback('bc-card-margin-dd',     updateBarcodeTitle);
 
 /* ─────────────────────────────────────────
    TAB NAVIGATION
@@ -120,6 +131,37 @@ document.getElementById('qr-bg').addEventListener('input', () => {
 });
 document.getElementById('qr-bg-hex').addEventListener('input', () => {
   synchronizeHexInput('qr-bg-hex', 'qr-bg', 'qr-bg-swatch');
+  scheduleQuickResponseCodeUpdate();
+});
+
+// Center logo upload
+document.getElementById('qr-logo-input').addEventListener('change', event => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    applicationState.quickResponseCode.logoDataUrl = reader.result;
+    const thumb = document.getElementById('qr-logo-thumb');
+    thumb.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = reader.result;
+    thumb.appendChild(img);
+    thumb.classList.add('has-logo');
+    document.getElementById('qr-logo-remove').hidden = false;
+    scheduleQuickResponseCodeUpdate();
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('qr-logo-remove').addEventListener('click', () => {
+  applicationState.quickResponseCode.logoDataUrl = null;
+  document.getElementById('qr-logo-input').value = '';
+  const thumb = document.getElementById('qr-logo-thumb');
+  thumb.classList.remove('has-logo');
+  thumb.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+  </svg>`;
+  document.getElementById('qr-logo-remove').hidden = true;
   scheduleQuickResponseCodeUpdate();
 });
 

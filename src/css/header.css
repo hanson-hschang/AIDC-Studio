@@ -6,20 +6,32 @@
 
 header {
   padding: 28px 0 0;
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+  flex-wrap: wrap;
 }
 .logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 26px; 
+  font-weight: 700; 
+  color: var(--accent);
   white-space: nowrap;
 }
 .logo .logo-sub {
-  color: var(--muted); font-weight: 400; font-size: 11px;
-  font-family: 'DM Mono', monospace; letter-spacing: 3px;
-  text-transform: uppercase; margin-left: 8px;
+  color: var(--muted); 
+  font-weight: 400; 
+  font-size: 11px;
+  font-family: 'DM Mono', monospace; 
+  letter-spacing: 3px;
+  text-transform: uppercase; 
+  margin-left: 8px;
 }
 .tagline {
-  margin-left: auto; font-size: 11px; color: var(--muted);
-  font-family: 'DM Mono', monospace; letter-spacing: 1px;
+  margin-left: auto; 
+  font-size: 11px; 
+  color: var(--muted);
+  font-family: 'DM Mono', monospace; 
+  letter-spacing: 1px;
 }
 @media (max-width: 600px) { .tagline { display: none; } }

@@ -19,8 +19,9 @@
   overflow: hidden;
   position: relative;
   animation: fadeUp 0.4s ease 0.1s both;
-  transition: background 0.3s;
+  transition: background 0.3s, width 0.15s ease;
   background: #000000;
+  margin: 0 auto;
 }
 .preview-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
@@ -59,7 +60,7 @@
 }
 .qr-placeholder svg { opacity: 0.3; }
 .qr-placeholder p { font-size: 12px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-align: center; }
-.qr-wrapper { border-radius: 8px; transition: background 0.3s; display: inline-block; }
+.qr-wrapper { border-radius: 8px; transition: background 0.3s; display: inline-block; overflow: hidden; line-height: 0; }
 .qr-wrapper img, .qr-wrapper canvas { display: block; }
 
 .qr-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -68,7 +69,8 @@
 .bc-preview-card {
   border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
   position: relative; animation: fadeUp 0.4s ease 0.1s both;
-  transition: background 0.3s; background: #000000;
+  transition: background 0.3s, width 0.15s ease; background: #000000;
+  margin: 0 auto;
 }
 .bc-preview-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;

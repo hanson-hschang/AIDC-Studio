@@ -6,10 +6,10 @@ A fast, free, and open-source studio for creating, styling, and exporting design
 
 ## Features
 
-- **QR Code Generator** — enter any URL, configure error-correction level, colours, quiet-zone margin, and output size
+- **QR Code Generator** — enter any URL, configure error-correction level, colors, quiet-zone margin, and output size
 - **Barcode Generator** — supports Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, ITF-14, MSI Plessey, and Pharmacode formats
 - **Typography Controls** — per-feature title labels with font family, size, letter-spacing, weight, italic, underline, and small-caps
-- **Colour Picker** — hex input and native colour picker with transparent-background support
+- **Color Picker** — hex input and native color picker with transparent-background support
 - **Export Formats** — PNG, JPEG, WebP, BMP, SVG, and PDF downloads; all exports composite the title label and code onto a single canvas
 - **No build step required** — plain HTML, CSS, and JavaScript ES modules served directly from a static host
 
@@ -22,10 +22,10 @@ A fast, free, and open-source studio for creating, styling, and exporting design
 | Markup | HTML5 |
 | Styling | Vanilla CSS with custom properties |
 | Logic | Vanilla JavaScript ES Modules (`type="module"`) |
-| Quick Response Code rendering | [qrcodejs](https://github.com/davidshimjs/qrcodejs) (CDN) |
+| Quick Response Code rendering | [qr-code-styling](https://github.com/kozakdenys/qr-code-styling) (CDN) |
 | Barcode rendering | [JsBarcode](https://github.com/lindell/JsBarcode) (CDN) |
 | PDF export | [jsPDF](https://github.com/parallax/jsPDF) (CDN) |
-| Fonts | Google Fonts — Playfair Display, DM Sans, DM Mono |
+| Fonts | Google Fonts — DM Sans, DM Mono |
 
 ---
 
@@ -41,7 +41,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution guide, naming c
 
 ---
 
-## Licence
+## License
 
-© 2025 AIDC Studio. All Rights Reserved.  
+© 2026 AIDC Studio. All Rights Reserved.  
 Generated codes are for personal use. Verify critical codes before deployment.
